@@ -1,137 +1,137 @@
-# Feature Specification: RSS Feed Filtering
+# 機能仕様書: RSSフィードフィルタリング
 
-**Feature Branch**: `001-rss-feed-filter`  
-**Created**: 2026-02-16  
-**Status**: Draft  
-**Input**: User description: "キーワードと正規表現に基づいたRSSフィードのフィルタリング機能を追加。既存コードはないため、両方の機能を一緒に実装する。ユーザーはキーワード（部分一致）または正規表現のいずれかでフィルタ条件を指定できる。"
+**機能ブランチ**: `001-rss-feed-filter`  
+**作成日**: 2026-02-16  
+**ステータス**: ドラフト  
+**要件**: "キーワードと正規表現に基づいたRSSフィードのフィルタリング機能を追加。既存コードはないため、両方の機能を一緒に実装する。ユーザーはキーワード（部分一致）または正規表現のいずれかでフィルタ条件を指定できる。"
 
-## User Scenarios & Testing *(mandatory)*
+## ユーザーシナリオとテスト *(必須)*
 
-### User Story 1 - Basic Keyword Filtering (Priority: P1)
+### ユーザーストーリー1 - 基本的なキーワードフィルタリング (優先度: P1)
 
-A user wants to filter RSS feed items by simple keyword matching to quickly find relevant content. They provide a keyword (e.g., "technology") and the system shows only feed items whose title or description contains that keyword, regardless of letter case.
+ユーザーは、関連するコンテンツを素早く見つけるために、シンプルなキーワードマッチングでRSSフィードアイテムをフィルタリングしたい。キーワード（例：「テクノロジー」）を入力すると、タイトルまたは説明にそのキーワードが含まれるフィードアイテムのみが表示される（大文字小文字を区別しない）。
 
-**Why this priority**: This is the most fundamental and frequently used feature. Most users need simple text search capability, which provides immediate value without requiring knowledge of advanced patterns.
+**この優先度の理由**: これは最も基本的で頻繁に使用される機能です。ほとんどのユーザーはシンプルなテキスト検索機能を必要としており、高度なパターン知識なしで即座に価値を提供できます。
 
-**Independent Test**: Can be fully tested by providing an RSS feed URL, entering a keyword like "news", and verifying that only items containing "news" (case-insensitive) in their title or description are displayed. This delivers standalone value as a basic RSS reader with search.
+**独立テスト**: RSSフィードURLを提供し、「ニュース」などのキーワードを入力して、タイトルまたは説明に「ニュース」が含まれるアイテム（大文字小文字を区別しない）のみが表示されることを確認することで、完全にテストできます。
 
-**Acceptance Scenarios**:
+**受け入れシナリオ**:
 
-1. **Given** a user has loaded an RSS feed with 20 items, **When** they enter the keyword "sports" in the filter box, **Then** only items containing "sports" in title or description are shown
-2. **Given** a user has entered keyword "TECH", **When** feed items contain "tech", "Tech", or "technology", **Then** items with "tech" or "Tech" are displayed (case-insensitive partial match)
-3. **Given** a user has entered keyword "science", **When** no feed items contain that word, **Then** an empty result list is shown with message "No matching items found"
-4. **Given** a user has applied a keyword filter, **When** they clear the filter box, **Then** all original feed items are displayed again
-
----
-
-### User Story 2 - Regular Expression Filtering (Priority: P2)
-
-A user with advanced filtering needs wants to use regular expressions to create complex matching patterns. They can specify regex patterns like "^Breaking:" to find items starting with "Breaking:" or "bug-\d+" to find bug references.
-
-**Why this priority**: This serves power users who need precise control over filtering. It builds on P1's foundation but is not required for basic functionality.
-
-**Independent Test**: Can be tested independently by providing a regex pattern like "^\[News\]" and verifying that only items with titles starting with "[News]" are matched. Delivers value for users needing advanced pattern matching beyond simple keywords.
-
-**Acceptance Scenarios**:
-
-1. **Given** a user has selected "Regular Expression" filter mode, **When** they enter pattern "^Breaking:", **Then** only items whose title starts with "Breaking:" are displayed
-2. **Given** a user enters regex "\d{4}-\d{2}-\d{2}", **When** feed items contain dates in YYYY-MM-DD format, **Then** those items are matched and displayed
-3. **Given** a user enters an invalid regex pattern like "[unclosed", **When** they apply the filter, **Then** an error message "Invalid regular expression pattern" is shown and no filtering occurs
-4. **Given** a user has entered regex "bug-\d+", **When** items contain "bug-123" or "bug-456", **Then** those items are matched
+1. **前提**: ユーザーが20件のアイテムを含むRSSフィードを読み込んでいる、**操作**: フィルタボックスにキーワード「スポーツ」を入力、**結果**: タイトルまたは説明に「スポーツ」を含むアイテムのみが表示される
+2. **前提**: ユーザーがキーワード「TECH」を入力した、**操作**: フィードアイテムに「tech」、「Tech」、または「technology」が含まれている、**結果**: 「tech」または「Tech」を含むアイテムが表示される（大文字小文字を区別しない部分一致）
+3. **前提**: ユーザーがキーワード「科学」を入力した、**操作**: どのフィードアイテムにもその単語が含まれていない、**結果**: 空の結果リストと「一致するアイテムが見つかりません」というメッセージが表示される
+4. **前提**: ユーザーがキーワードフィルタを適用した、**操作**: フィルタボックスをクリアする、**結果**: すべての元のフィードアイテムが再び表示される
 
 ---
 
-### User Story 3 - Filter Mode Selection (Priority: P3)
+### ユーザーストーリー2 - 正規表現フィルタリング (優先度: P2)
 
-A user wants to easily switch between keyword and regex filtering modes without re-entering their pattern. They can toggle between "Keyword" and "Regular Expression" modes, and the system re-evaluates the current pattern using the new mode.
+高度なフィルタリングニーズを持つユーザーは、正規表現を使用して複雑なマッチングパターンを作成したい。「^Breaking:」で始まるアイテムを見つけたり、「bug-\d+」でバグ参照を見つけたりするような正規表現パターンを指定できる。
 
-**Why this priority**: This enhances usability by allowing users to experiment with different matching approaches. It's valuable but not critical for core functionality.
+**この優先度の理由**: これはパワーユーザー向けで、フィルタリングの精密な制御が必要な場合に使用します。P1の基礎の上に構築されますが、基本機能には必須ではありません。
 
-**Independent Test**: Can be tested by entering "test.*data" with keyword mode selected (matches literally), then switching to regex mode (matches pattern), and verifying that results change appropriately. Delivers convenience for users exploring filter options.
+**独立テスト**: 「^\[News\]」のような正規表現パターンを提供し、「[News]」で始まるタイトルのアイテムのみがマッチすることを確認することで、独立してテストできます。
 
-**Acceptance Scenarios**:
+**受け入れシナリオ**:
 
-1. **Given** a user has entered "test.*data" in keyword mode, **When** they switch to regex mode, **Then** the filter is re-applied as a regex pattern and results update accordingly
-2. **Given** a user has entered "[News]" in regex mode (matching literal brackets), **When** they switch to keyword mode, **Then** the pattern is treated as literal text including brackets
-3. **Given** a user switches filter modes, **When** the current pattern is invalid for the new mode, **Then** an appropriate error message is shown
+1. **前提**: ユーザーが「正規表現」フィルタモードを選択した、**操作**: パターン「^Breaking:」を入力、**結果**: タイトルが「Breaking:」で始まるアイテムのみが表示される
+2. **前提**: ユーザーが正規表現「\d{4}-\d{2}-\d{2}」を入力した、**操作**: フィードアイテムにYYYY-MM-DD形式の日付が含まれている、**結果**: それらのアイテムがマッチして表示される
+3. **前提**: ユーザーが「[unclosed」のような無効な正規表現パターンを入力した、**操作**: フィルタを適用する、**結果**: 「無効な正規表現パターンです」というエラーメッセージが表示され、フィルタリングは行われない
+4. **前提**: ユーザーが正規表現「bug-\d+」を入力した、**操作**: アイテムに「bug-123」または「bug-456」が含まれている、**結果**: それらのアイテムがマッチする
 
 ---
 
-### Edge Cases
+### ユーザーストーリー3 - フィルタモード選択 (優先度: P3)
 
-- What happens when an RSS feed URL is unreachable or returns an error?
-- What happens when an RSS feed contains no items?
-- What happens when a feed item has no title or description?
-- How does the system handle extremely large feeds (10,000+ items)?
-- What happens when a user enters an empty filter pattern?
-- How does the system handle special characters in keywords (e.g., quotes, backslashes)?
-- What happens when a regex pattern causes catastrophic backtracking (performance issue)?
-- How does the system handle feeds with malformed XML?
-- What happens when feed item content contains HTML tags? → Decode HTML entities before matching to ensure accurate text search
+ユーザーは、パターンを再入力することなく、キーワードと正規表現フィルタリングモードを簡単に切り替えたい。「キーワード」と「正規表現」モードを切り替えることができ、システムは新しいモードを使用して現在のパターンを再評価する。
 
-## Requirements *(mandatory)*
+**この優先度の理由**: これは、さまざまなマッチングアプローチを試すことでユーザビリティを向上させます。価値はありますが、コア機能には必須ではありません。
 
-### Functional Requirements
+**独立テスト**: キーワードモードで「test.*data」を入力し（文字通りマッチ）、次に正規表現モードに切り替えて（パターンマッチ）、結果が適切に変更されることを確認することでテストできます。
 
-- **FR-001**: System MUST accept RSS feed URLs as input and parse standard RSS 2.0 and Atom feed formats
-- **FR-002**: System MUST extract title, description, link, and publication date from each feed item
-- **FR-003**: System MUST support keyword filtering with case-insensitive partial matching across item titles and descriptions
-- **FR-004**: System MUST support regular expression filtering using standard regex syntax
-- **FR-005**: System MUST validate regex patterns and display clear error messages for invalid patterns
-- **FR-006**: Users MUST be able to select between "Keyword" and "Regular Expression" filter modes
-- **FR-007**: System MUST apply filters in real-time as users type or change filter mode
-- **FR-008**: System MUST display the count of matching items vs total items (e.g., "5 of 20 items")
-- **FR-009**: System MUST handle empty filter patterns by showing all feed items
-- **FR-010**: System MUST display feed items with at minimum: title, description preview, link, and date
-- **FR-011**: System MUST show appropriate messages when no items match the filter criteria
-- **FR-012**: System MUST handle feed loading errors gracefully with user-friendly error messages
-- **FR-013**: System MUST search both title and description fields for matches
-- **FR-016**: System MUST decode HTML entities (e.g., `&lt;` → `<`, `&amp;` → `&`) in feed content before applying filters to ensure accurate text matching
-- **FR-014**: System MUST preserve original feed item order when displaying filtered results
-- **FR-015**: Users MUST be able to clear filters and return to viewing all items
+**受け入れシナリオ**:
 
-### Key Entities
+1. **前提**: ユーザーがキーワードモードで「test.*data」を入力した、**操作**: 正規表現モードに切り替える、**結果**: フィルタが正規表現パターンとして再適用され、結果が適切に更新される
+2. **前提**: ユーザーが正規表現モードで「[News]」を入力した（文字通りのブラケットをマッチ）、**操作**: キーワードモードに切り替える、**結果**: パターンがブラケットを含む文字通りのテキストとして扱われる
+3. **前提**: ユーザーがフィルタモードを切り替えた、**操作**: 現在のパターンが新しいモードで無効、**結果**: 適切なエラーメッセージが表示される
 
-- **RSS Feed**: Represents a syndication feed source, containing: source URL, feed title, feed description, last updated timestamp, collection of feed items
-- **Feed Item**: Individual entry within a feed, containing: title, description/content, link URL, publication date, author (optional), categories/tags (optional)
-- **Filter Criteria**: User-defined filtering rules, containing: filter type (keyword or regex), pattern string, active status, case sensitivity setting (for keywords)
-- **Filtered Result Set**: The outcome of applying filters, containing: matching feed items, total match count, filter criteria used
+---
 
-## Success Criteria *(mandatory)*
+### エッジケース
 
-### Measurable Outcomes
+- RSSフィードのURLに到達できない、またはエラーが返される場合はどうなるか？
+- RSSフィードにアイテムが含まれていない場合はどうなるか？
+- フィードアイテムにタイトルまたは説明がない場合はどうなるか？
+- システムは非常に大きなフィード（10,000件以上のアイテム）をどのように処理するか？
+- ユーザーが空のフィルタパターンを入力した場合はどうなるか？
+- システムはキーワード内の特殊文字（引用符、バックスラッシュなど）をどのように処理するか？
+- 正規表現パターンが壊滅的なバックトラッキングを引き起こす場合はどうなるか（パフォーマンス問題）？
+- システムは不正なXMLのフィードをどのように処理するか？
+- フィードアイテムのコンテンツにHTMLタグが含まれている場合はどうなるか？ → 正確なテキスト検索を保証するために、マッチングの前にHTMLエンティティをデコードする
 
-- **SC-001**: Users can apply a keyword filter and see results within 2 seconds for feeds up to 1000 items
-- **SC-002**: 95% of keyword searches return accurate results (all matching items shown, no false positives)
-- **SC-003**: System correctly identifies and reports invalid regex patterns with helpful error messages
-- **SC-004**: Users can switch between filter modes and see updated results within 1 second
-- **SC-005**: 90% of users can successfully create their first filter without instructions or help documentation
-- **SC-006**: System handles feeds with 5000+ items without performance degradation (filtering completes within 5 seconds)
-- **SC-007**: Feed loading errors are displayed with clear, actionable messages (e.g., "Cannot reach feed URL. Please check the URL and try again.")
-- **SC-008**: Regex filtering accuracy of 98% for common patterns (email addresses, dates, URLs, etc.)
+## 要件 *(必須)*
 
-## Assumptions
+### 機能要件
 
-- Users are familiar with basic text search concepts
-- Users attempting regex filtering have basic understanding of regular expressions or are willing to learn
-- RSS feeds are publicly accessible (no authentication required)
-- Feed content is primarily in plain text or simple HTML
-- Filtering occurs on client-side (no server-side persistence required initially)
-- Feeds are in English or users understand the feed language
-- Standard regex syntax is sufficient (no need for advanced regex features like lookbehinds, atomic groups)
-- Users have modern web browsers with JavaScript enabled
-- Performance expectations are based on typical RSS feed sizes (100-1000 items)
+- **FR-001**: システムは入力としてRSSフィードURLを受け入れ、標準のRSS 2.0およびAtomフィード形式を解析しなければならない
+- **FR-002**: システムは各フィードアイテムからタイトル、説明、リンク、公開日を抽出しなければならない
+- **FR-003**: システムはアイテムのタイトルと説明にわたって大文字小文字を区別しない部分一致によるキーワードフィルタリングをサポートしなければならない
+- **FR-004**: システムは標準的な正規表現構文を使用した正規表現フィルタリングをサポートしなければならない
+- **FR-005**: システムは正規表現パターンを検証し、無効なパターンに対して明確なエラーメッセージを表示しなければならない
+- **FR-006**: ユーザーは「キーワード」と「正規表現」フィルタモードを選択できなければならない
+- **FR-007**: システムはユーザーが入力するか、フィルタモードを変更すると、リアルタイムでフィルタを適用しなければならない
+- **FR-008**: システムはマッチするアイテムの数と総アイテム数を表示しなければならない（例：「20件中5件」）
+- **FR-009**: システムは空のフィルタパターンを処理し、すべてのフィードアイテムを表示しなければならない
+- **FR-010**: システムは最低限、タイトル、説明のプレビュー、リンク、日付を含むフィードアイテムを表示しなければならない
+- **FR-011**: システムはフィルタ基準に一致するアイテムがない場合、適切なメッセージを表示しなければならない
+- **FR-012**: システムはフィード読み込みエラーをユーザーフレンドリーなエラーメッセージで適切に処理しなければならない
+- **FR-013**: システムはマッチのためにタイトルと説明の両方のフィールドを検索しなければならない
+- **FR-016**: システムは正確なテキストマッチングを保証するために、フィルタを適用する前にフィードコンテンツのHTMLエンティティ（例：`&lt;` → `<`、`&amp;` → `&`）をデコードしなければならない
+- **FR-014**: システムはフィルタリングされた結果を表示する際、元のフィードアイテムの順序を保持しなければならない
+- **FR-015**: ユーザーはフィルタをクリアして、すべてのアイテムの表示に戻ることができなければならない
 
-## Out of Scope
+### 主要エンティティ
 
-- Saving or persisting filter configurations between sessions
-- Multi-feed aggregation or filtering across multiple feeds simultaneously
-- Subscribing to feeds or automatic feed refresh/polling
-- User authentication or multi-user support
-- Feed discovery or feed recommendation features
-- Advanced filtering like date range filtering, author filtering, or category filtering
-- Exporting filtered results
-- Feed item starring, bookmarking, or read/unread status
-- Mobile-specific interface optimization (though responsive design is assumed)
-- Offline access or caching of feed content
-- Integration with external services or APIs
+- **RSSフィード**: 配信フィードソースを表し、以下を含む：ソースURL、フィードタイトル、フィード説明、最終更新タイムスタンプ、フィードアイテムのコレクション
+- **フィードアイテム**: フィード内の個別エントリで、以下を含む：タイトル、説明/コンテンツ、リンクURL、公開日、著者（オプション）、カテゴリ/タグ（オプション）
+- **フィルタ基準**: ユーザー定義のフィルタリングルールで、以下を含む：フィルタタイプ（キーワードまたは正規表現）、パターン文字列、アクティブステータス、大文字小文字の区別設定（キーワードの場合）
+- **フィルタリング結果セット**: フィルタを適用した結果で、以下を含む：マッチするフィードアイテム、総マッチ数、使用されたフィルタ基準
+
+## 成功基準 *(必須)*
+
+### 測定可能な成果
+
+- **SC-001**: ユーザーは1000件までのフィードに対して、キーワードフィルタを適用して2秒以内に結果を確認できる
+- **SC-002**: キーワード検索の95%が正確な結果を返す（一致するアイテムがすべて表示され、誤検出がない）
+- **SC-003**: システムは無効な正規表現パターンを正しく識別し、有用なエラーメッセージで報告する
+- **SC-004**: ユーザーはフィルタモードを切り替えて、1秒以内に更新された結果を確認できる
+- **SC-005**: 90%のユーザーが、説明書やヘルプドキュメントなしで最初のフィルタを正常に作成できる
+- **SC-006**: システムはパフォーマンス低下なしで5000件以上のアイテムを含むフィードを処理する（フィルタリングが5秒以内に完了）
+- **SC-007**: フィード読み込みエラーは明確で実行可能なメッセージで表示される（例：「フィードURLに到達できません。URLを確認して再試行してください。」）
+- **SC-008**: 一般的なパターン（メールアドレス、日付、URLなど）に対して98%の正規表現フィルタリング精度
+
+## 前提条件
+
+- ユーザーは基本的なテキスト検索の概念に精通している
+- 正規表現フィルタリングを試みるユーザーは、正規表現の基本的な理解があるか、学ぶ意欲がある
+- RSSフィードは公開アクセス可能である（認証不要）
+- フィードコンテンツは主にプレーンテキストまたはシンプルなHTMLである
+- フィルタリングはクライアント側で行われる（最初はサーバー側の永続化は不要）
+- フィードは英語であるか、ユーザーがフィード言語を理解している
+- 標準的な正規表現構文で十分である（後読み、アトミックグループなどの高度な正規表現機能は不要）
+- ユーザーはJavaScriptが有効になっている最新のWebブラウザを使用している
+- パフォーマンス期待値は典型的なRSSフィードサイズ（100〜1000件のアイテム）に基づいている
+
+## スコープ外
+
+- セッション間でのフィルタ設定の保存または永続化
+- マルチフィード集約または複数フィードの同時フィルタリング
+- フィードの購読または自動フィード更新/ポーリング
+- ユーザー認証またはマルチユーザーサポート
+- フィード発見またはフィード推奨機能
+- 日付範囲フィルタリング、著者フィルタリング、カテゴリフィルタリングなどの高度なフィルタリング
+- フィルタリング結果のエクスポート
+- フィードアイテムのスター付け、ブックマーク、既読/未読ステータス
+- モバイル専用インターフェースの最適化（レスポンシブデザインは想定）
+- オフラインアクセスまたはフィードコンテンツのキャッシング
+- 外部サービスまたはAPIとの統合
