@@ -5,14 +5,15 @@
 
 ## Overview
 
-RSS Feed Filter APIは、RSSフィードからキーワードまたは正規表現でアイテムをフィルタリングするサーバーレスAPIです。
+RSS Feed Filter APIは、RSSフィードからキーワードまたは正規表現でアイテムをフィルタリングするサーバーレスAPIです。レスポンスはRSS/Atom XML形式で、既存のRSSリーダーで直接利用可能です。
 
 **Key Features**:
-- ✅ キーワード検索 (大文字小文字区別可能)
+- ✅ キーワード検索（常に大文字小文字を区別しない）
 - ✅ 正規表現フィルタリング
 - ✅ RSS 2.0 & Atom対応
 - ✅ HTMLエンティティ自動デコード
 - ✅ 5000件までのフィードサポート
+- ✅ RSSリーダー互換のXMLレスポンス
 
 ---
 
@@ -21,86 +22,55 @@ RSS Feed Filter APIは、RSSフィードからキーワードまたは正規表�
 ### 1. API Endpoint
 
 ```
-POST https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter
+GET https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter
 ```
 
 ### 2. Basic Request (Keyword Filter)
 
 ```bash
-curl -X POST https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter \
-  -H "Content-Type: application/json" \
-  -d '{
-    "feedUrl": "https://example.com/feed.xml",
-    "filter": {
-      "type": "keyword",
-      "pattern": "technology",
-      "caseSensitive": false
-    }
-  }'
+curl "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://example.com/feed.xml&type=keyword&pattern=technology"
 ```
 
-### 3. Response Example
+### 3. Response Example (RSS 2.0)
 
-```json
-{
-  "feed": {
-    "title": "Tech News",
-    "description": "Latest technology news"
-  },
-  "items": [
-    {
-      "title": "New Technology Breakthrough",
-      "description": "Scientists announce...",
-      "link": "https://example.com/article1",
-      "pubDate": "2026-02-15T10:00:00Z"
-    }
-  ],
-  "matchCount": 1,
-  "totalCount": 20,
-  "filterApplied": {
-    "type": "keyword",
-    "pattern": "technology",
-    "caseSensitive": false
-  }
-}
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Tech News</title>
+    <description>Latest technology news</description>
+    <link>https://example.com</link>
+    <item>
+      <title>New Technology Breakthrough</title>
+      <description>Scientists announce...</description>
+      <link>https://example.com/article1</link>
+      <pubDate>Sat, 15 Feb 2026 10:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>
 ```
 
 ---
 
 ## Usage Examples
 
-### Example 1: Case-Sensitive Keyword Search
+### Example 1: Keyword Search (Case-Insensitive)
 
 ```bash
-curl -X POST {API_ENDPOINT}/filter \
-  -H "Content-Type: application/json" \
-  -d '{
-    "feedUrl": "https://news.example.com/rss",
-    "filter": {
-      "type": "keyword",
-      "pattern": "AI",
-      "caseSensitive": true
-    }
-  }'
+curl "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://news.example.com/rss&type=keyword&pattern=AI"
 ```
 
-**Result**: "AI"にマッチ、"ai"や"Ai"はマッチしない
+**Result**: "AI", "ai", "Ai" すべてマッチ（常に大文字小文字を区別しない）
 
 ---
 
 ### Example 2: Regex Filter (Breaking News)
 
 ```bash
-curl -X POST {API_ENDPOINT}/filter \
-  -H "Content-Type: application/json" \
-  -d '{
-    "feedUrl": "https://news.example.com/rss",
-    "filter": {
-      "type": "regex",
-      "pattern": "^Breaking:"
-    }
-  }'
+curl "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://news.example.com/rss&type=regex&pattern=%5EBreaking%3A"
 ```
+
+**Note**: `%5EBreaking%3A` は `^Breaking:` のURLエンコード
 
 **Result**: "Breaking:"で始まるタイトルのみ表示
 
@@ -109,16 +79,10 @@ curl -X POST {API_ENDPOINT}/filter \
 ### Example 3: Date Pattern Filter
 
 ```bash
-curl -X POST {API_ENDPOINT}/filter \
-  -H "Content-Type: application/json" \
-  -d '{
-    "feedUrl": "https://blog.example.com/feed",
-    "filter": {
-      "type": "regex",
-      "pattern": "\\d{4}-\\d{2}-\\d{2}"
-    }
-  }'
+curl "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://blog.example.com/feed&type=regex&pattern=%5Cd%7B4%7D-%5Cd%7B2%7D-%5Cd%7B2%7D"
 ```
+
+**Note**: `%5Cd%7B4%7D-%5Cd%7B2%7D-%5Cd%7B2%7D` は `\d{4}-\d{2}-\d{2}` のURLエンコード
 
 **Result**: YYYY-MM-DD形式の日付を含むアイテムを抽出
 
@@ -127,16 +91,10 @@ curl -X POST {API_ENDPOINT}/filter \
 ### Example 4: Bug Tracker References
 
 ```bash
-curl -X POST {API_ENDPOINT}/filter \
-  -H "Content-Type: application/json" \
-  -d '{
-    "feedUrl": "https://commits.example.com/feed",
-    "filter": {
-      "type": "regex",
-      "pattern": "bug-\\d+"
-    }
-  }'
+curl "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://commits.example.com/feed&type=regex&pattern=bug-%5Cd%2B"
 ```
+
+**Note**: `bug-%5Cd%2B` は `bug-\d+` のURLエンコード
 
 **Result**: "bug-123", "bug-456"のようなバグIDを含むアイテムを抽出
 
@@ -148,27 +106,22 @@ curl -X POST {API_ENDPOINT}/filter \
 
 #### Invalid Regular Expression
 
-```json
-{
-  "error": {
-    "code": "INVALID_REGEX",
-    "message": "無効な正規表現パターンです",
-    "details": "Unterminated character class"
-  }
-}
+```
+HTTP/1.1 400 Bad Request
+Content-Type: text/plain
+
+無効な正規表現パターンです
 ```
 
 **Solution**: 正規表現構文を確認してください。
 
 #### Invalid URL
 
-```json
-{
-  "error": {
-    "code": "INVALID_URL",
-    "message": "無効なフィードURLです"
-  }
-}
+```
+HTTP/1.1 400 Bad Request
+Content-Type: text/plain
+
+無効なフィードURLです
 ```
 
 **Solution**: `http://` または `https://` で始まる有効なURLを指定してください。
@@ -179,28 +132,22 @@ curl -X POST {API_ENDPOINT}/filter \
 
 #### Feed Fetch Error
 
-```json
-{
-  "error": {
-    "code": "FEED_FETCH_ERROR",
-    "message": "フィードの取得に失敗しました",
-    "details": "HTTP 404: Not Found"
-  }
-}
+```
+HTTP/1.1 500 Internal Server Error
+Content-Type: text/plain
+
+フィードの取得に失敗しました
 ```
 
 **Solution**: フィードURLが正しいか、アクセス可能か確認してください。
 
 #### Parse Error
 
-```json
-{
-  "error": {
-    "code": "PARSE_ERROR",
-    "message": "フィードの解析に失敗しました",
-    "details": "Invalid XML format"
-  }
-}
+```
+HTTP/1.1 500 Internal Server Error
+Content-Type: text/plain
+
+フィードの解析に失敗しました
 ```
 
 **Solution**: フィードが有効なRSS 2.0またはAtom形式か確認してください。
@@ -229,16 +176,26 @@ curl -X POST {API_ENDPOINT}/filter \
 
 ```bash
 # 公開RSSフィードでテスト
-curl -X POST {API_ENDPOINT}/filter \
-  -H "Content-Type: application/json" \
-  -d '{
-    "feedUrl": "https://www.reddit.com/r/technology/.rss",
-    "filter": {
-      "type": "keyword",
-      "pattern": "AI",
-      "caseSensitive": false
-    }
-  }'
+curl "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://www.reddit.com/r/technology/.rss&type=keyword&pattern=AI"
+```
+
+---
+
+## Using with RSS Readers
+
+### Feedly, Inoreader, NewsBlur等
+
+フィルタリングされたフィードURLを直接RSSリーダーに登録できます：
+
+```
+https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://example.com/feed.xml&type=keyword&pattern=technology
+```
+
+### cURL でダウンロード
+
+```bash
+# フィルタリング済みフィードをファイルに保存
+curl "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://example.com/feed.xml&type=keyword&pattern=AI" -o filtered-feed.xml
 ```
 
 ---
@@ -256,42 +213,42 @@ npm install axios
 ```typescript
 import axios from 'axios';
 
-interface FilterRequest {
+interface FilterParams {
   feedUrl: string;
-  filter: {
-    type: 'keyword' | 'regex';
-    pattern: string;
-    caseSensitive?: boolean;
-  };
+  type: 'keyword' | 'regex';
+  pattern: string;
 }
 
-async function filterFeed(request: FilterRequest) {
+async function getFilteredFeed(params: FilterParams): Promise<string> {
   try {
-    const response = await axios.post(
-      'https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter',
-      request,
-      { headers: { 'Content-Type': 'application/json' } }
-    );
+    const url = new URL('https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter');
+    url.searchParams.set('feedUrl', params.feedUrl);
+    url.searchParams.set('type', params.type);
+    url.searchParams.set('pattern', params.pattern);
     
-    console.log(`Matched ${response.data.matchCount} of ${response.data.totalCount} items`);
-    return response.data;
+    const response = await axios.get(url.toString(), {
+      headers: { 'Accept': 'application/rss+xml, application/atom+xml' }
+    });
+    
+    console.log('Received RSS/Atom XML:', response.data.length, 'bytes');
+    return response.data; // RSS/Atom XML文字列
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('API Error:', error.response?.data.error);
+    if (axios.isAxiosError(error) && error.response) {
+      console.error('API Error:', error.response.status, error.response.data);
     }
     throw error;
   }
 }
 
 // Usage
-filterFeed({
+const xml = await getFilteredFeed({
   feedUrl: 'https://example.com/feed.xml',
-  filter: {
-    type: 'keyword',
-    pattern: 'technology',
-    caseSensitive: false
-  }
+  type: 'keyword',
+  pattern: 'technology'
 });
+
+// XMLをパースするか、ファイルに保存
+// fs.writeFileSync('filtered-feed.xml', xml);
 ```
 
 ---
@@ -308,39 +265,37 @@ pip install requests
 
 ```python
 import requests
+from urllib.parse import urlencode
 
-def filter_feed(feed_url: str, filter_type: str, pattern: str, case_sensitive: bool = False):
+def get_filtered_feed(feed_url: str, filter_type: str, pattern: str) -> str:
     endpoint = "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter"
     
-    payload = {
+    params = {
         "feedUrl": feed_url,
-        "filter": {
-            "type": filter_type,
-            "pattern": pattern
-        }
+        "type": filter_type,
+        "pattern": pattern
     }
     
-    if filter_type == "keyword":
-        payload["filter"]["caseSensitive"] = case_sensitive
-    
-    response = requests.post(endpoint, json=payload)
+    response = requests.get(endpoint, params=params)
     
     if response.status_code == 200:
-        data = response.json()
-        print(f"Matched {data['matchCount']} of {data['totalCount']} items")
-        return data
+        print(f"Received {response.headers.get('Content-Type')}")
+        return response.text  # RSS/Atom XML文字列
     else:
-        error = response.json()["error"]
-        print(f"Error {error['code']}: {error['message']}")
+        print(f"Error {response.status_code}: {response.text}")
         return None
 
 # Usage
-result = filter_feed(
+xml_content = get_filtered_feed(
     feed_url="https://example.com/feed.xml",
     filter_type="keyword",
-    pattern="technology",
-    case_sensitive=False
+    pattern="technology"
 )
+
+# XMLファイルとして保存
+if xml_content:
+    with open('filtered-feed.xml', 'w', encoding='utf-8') as f:
+        f.write(xml_content)
 ```
 
 ---
@@ -352,8 +307,8 @@ result = filter_feed(
 特定のトピックに関するニュースのみを購読:
 
 ```bash
-# "climate"に関する記事のみ
-filter: { type: "keyword", pattern: "climate", caseSensitive: false }
+# "climate"に関する記事のみをRSSリーダーに登録
+https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://news.example.com/rss&type=keyword&pattern=climate
 ```
 
 ### 2. Developer Commit Feed
@@ -361,8 +316,9 @@ filter: { type: "keyword", pattern: "climate", caseSensitive: false }
 特定のバグ修正コミットを追跡:
 
 ```bash
-# "fix:"で始まるコミットメッセージ
-filter: { type: "regex", pattern: "^fix:" }
+# "fix:"で始まるコミットメッセージのみ
+# URLエンコード: ^fix: → %5Efix%3A
+https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://commits.example.com/feed&type=regex&pattern=%5Efix%3A
 ```
 
 ### 3. Security Alerts
@@ -371,7 +327,8 @@ filter: { type: "regex", pattern: "^fix:" }
 
 ```bash
 # "security", "vulnerability", "CVE"を含むアイテム
-filter: { type: "regex", pattern: "security|vulnerability|CVE-\\d+" }
+# URLエンコード: security|vulnerability|CVE-\d+ → security%7Cvulnerability%7CCVE-%5Cd%2B
+https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://security.example.com/feed&type=regex&pattern=security%7Cvulnerability%7CCVE-%5Cd%2B
 ```
 
 ### 4. Blog Post Categories
@@ -380,7 +337,8 @@ filter: { type: "regex", pattern: "security|vulnerability|CVE-\\d+" }
 
 ```bash
 # "[Tutorial]"タグ付き記事
-filter: { type: "regex", pattern: "\\[Tutorial\\]" }
+# URLエンコード: \[Tutorial\] → %5C%5BTutorial%5C%5D
+https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://blog.example.com/feed&type=regex&pattern=%5C%5BTutorial%5C%5D
 ```
 
 ---
@@ -392,63 +350,59 @@ filter: { type: "regex", pattern: "\\[Tutorial\\]" }
 - **キーワード**: 短い単語またはフレーズを使用
 - **正規表現**: シンプルなパターンを優先、複雑すぎると500msでタイムアウト
 
-### 2. Error Recovery
+### 2. URL Encoding
 
+正規表現の特殊文字は必ずURLエンコードしてください：
+
+| 文字 | URLエンコード |
+|------|--------------|
+| `^` | `%5E` |
+| `$` | `%24` |
+| `\` | `%5C` |
+| `|` | `%7C` |
+| `+` | `%2B` |
+| `*` | `%2A` |
+
+JavaScriptの例：
 ```javascript
-async function robustFilterFeed(request) {
-  const maxRetries = 3;
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      return await filterFeed(request);
-    } catch (error) {
-      if (error.response?.data.error.code === 'FEED_FETCH_ERROR') {
-        // ネットワークエラー: リトライ
-        await sleep(1000 * (i + 1));
-        continue;
-      }
-      // その他のエラー: 即座に失敗
-      throw error;
-    }
-  }
-}
+const pattern = "^Breaking:";
+const encoded = encodeURIComponent(pattern); // %5EBreaking%3A
 ```
 
 ### 3. Caching Strategy
 
-フィードURLとフィルタパターンをキーとしてクライアント側でキャッシュ:
+RSSリーダー側でフィードをキャッシュすることを推奨：
 
-```javascript
-const cacheKey = `${feedUrl}:${JSON.stringify(filter)}`;
-const cached = cache.get(cacheKey);
-if (cached && Date.now() - cached.timestamp < 300000) { // 5分
-  return cached.data;
-}
+```bash
+# If-Modified-Since ヘッダーを使用して帯域幅を節約
+curl -H "If-Modified-Since: Sat, 15 Feb 2026 10:00:00 GMT" \
+  "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?..."
 ```
 
 ---
 
 ## Troubleshooting
 
-### Issue: "REGEX_TIMEOUT" Error
+### Issue: "正規表現の処理がタイムアウトしました" Error
 
 **Cause**: 正規表現が複雑すぎる  
 **Solution**: パターンを簡略化する
 
 ```bash
 # ❌ 複雑すぎる
-"(a+)+b"
+pattern=(a+)+b
 
 # ✅ シンプル
-"a+b"
+pattern=a+b
 ```
 
-### Issue: Empty Results (`matchCount: 0`)
+### Issue: Empty Feed (アイテムが0件)
 
 **Cause**: パターンがマッチしない  
 **Solution**: 
-1. キーワードの大文字小文字を確認
-2. `caseSensitive: false` を試す
-3. より広いパターンを使用
+1. キーワードのスペルを確認
+2. より広いパターンを使用（例：`tech` の代わりに `technology|tech|technical`）
+3. 元のフィードを確認（フィルタなしでアクセス）
 
 ### Issue: Slow Response
 
@@ -457,6 +411,14 @@ if (cached && Date.now() - cached.timestamp < 300000) { // 5分
 1. より具体的なフィルタで結果を絞る
 2. フィードソースで事前フィルタリング
 3. 5000件未満のフィードを使用
+
+### Issue: Invalid XML Error
+
+**Cause**: 元のフィードが不正な形式  
+**Solution**:
+1. 元のフィードURLをブラウザで確認
+2. RSS/Atom バリデーターでチェック（https://validator.w3.org/feed/）
+3. 別のフィードソースを試す
 
 ---
 
