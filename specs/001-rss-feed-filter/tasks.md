@@ -1,275 +1,274 @@
 ---
 
-description: "Implementation tasks for RSS Feed Filtering feature"
+description: "RSSフィードフィルタリング機能の実装タスク"
 ---
 
-# Tasks: RSSフィードフィルタリング
+# タスク: RSSフィードフィルタリング
 
-**Input**: Design documents from `/specs/001-rss-feed-filter/`
-**Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/
+**入力**: `/specs/001-rss-feed-filter/` の設計ドキュメント
+**前提条件**: plan.md, spec.md, research.md, data-model.md, contracts/
 
-**Tests**: Tests are OPTIONAL and not included in this implementation plan per the feature specification.
+**テスト**: 機能仕様に従い、テストはオプションであり、この実装計画には含まれていません。
 
-**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
+**構成**: タスクはユーザーストーリーごとにグループ化され、各ストーリーの独立した実装とテストを可能にします。
 
-## Format: `[ID] [P?] [Story] Description`
+## 形式: `[ID] [P?] [Story] 説明`
 
-- **[P]**: Can run in parallel (different files, no dependencies)
-- **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3)
-- Include exact file paths in descriptions
+- **[P]**: 並列実行可能（異なるファイル、依存関係なし）
+- **[Story]**: このタスクが属するユーザーストーリー（例: US1, US2, US3）
+- 説明には正確なファイルパスを含める
 
-## Path Conventions
+## パス規約
 
-- **Single project**: `src/`, `tests/` at repository root
-- Paths follow the structure defined in plan.md
-
----
-
-## Phase 1: Setup (Shared Infrastructure)
-
-**Purpose**: Project initialization and basic structure
-
-- [ ] T001 Create project structure with src/, tests/ directories per plan.md
-- [ ] T002 Initialize TypeScript project with package.json (typescript 5.x, node 20.x)
-- [ ] T003 [P] Install dependencies: fast-xml-parser, he for HTML entity decoding
-- [ ] T004 [P] Install dev dependencies: vitest, esbuild, @types/node
-- [ ] T005 [P] Configure tsconfig.json with strict mode enabled
-- [ ] T006 [P] Configure ESLint and Prettier per constitution.md requirements
-- [ ] T007 [P] Setup esbuild configuration for Lambda bundling in build.config.ts
-- [ ] T008 [P] Create vitest.config.ts for unit testing
+- **単一プロジェクト**: リポジトリルートに `src/`, `tests/`
+- パスは plan.md で定義された構造に従う
 
 ---
 
-## Phase 2: Foundational (Blocking Prerequisites)
+## フェーズ1: セットアップ（共通インフラ）
 
-**Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented
+**目的**: プロジェクト初期化と基本構造
 
-**⚠️ CRITICAL**: No user story work can begin until this phase is complete
-
-- [ ] T009 Create error types in src/lib/errors.ts (FeedFetchError, ParseError, FilterValidationError, RegexTimeoutError)
-- [ ] T010 [P] Create RSSFeed interface in src/models/feed.ts per data-model.md
-- [ ] T011 [P] Create FeedItem interface in src/models/feed.ts per data-model.md
-- [ ] T012 [P] Create FilterCriteria type (KeywordFilter, RegexFilter) in src/models/filter.ts per data-model.md
-- [ ] T013 [P] Create FilterResult interface in src/models/filter.ts per data-model.md
-- [ ] T014 Implement feed-fetcher service in src/services/feed-fetcher.ts to fetch RSS from URL using fast-xml-parser
-- [ ] T015 Implement HTML entity decoder in src/services/html-decoder.ts using he package
-- [ ] T016 Create Lambda handler entry point in src/handlers/lambda.ts with query parameter parsing
-- [ ] T017 Add input validation for query parameters (feedUrl, type, pattern) in src/handlers/lambda.ts
-- [ ] T018 Add error mapping to HTTP status codes (400/500) in src/handlers/lambda.ts
-
-**Checkpoint**: Foundation ready - user story implementation can now begin in parallel
+- [ ] T001 plan.md に従って src/, tests/ ディレクトリのプロジェクト構造を作成
+- [ ] T002 package.json で TypeScript プロジェクトを初期化（typescript 5.x, node 20.x）
+- [ ] T003 [P] 依存関係をインストール: fast-xml-parser, he（HTMLエンティティデコード用）
+- [ ] T004 [P] 開発依存関係をインストール: vitest, esbuild, @types/node
+- [ ] T005 [P] strict モード有効で tsconfig.json を設定
+- [ ] T006 [P] constitution.md の要件に従って ESLint と Prettier を設定
+- [ ] T007 [P] build.config.ts で Lambda バンドル用の esbuild 設定をセットアップ
+- [ ] T008 [P] ユニットテスト用の vitest.config.ts を作成
 
 ---
 
-## Phase 3: User Story 1 - 基本的なキーワードフィルタリング (Priority: P1) 🎯 MVP
+## フェーズ2: 基盤（ブロッキング前提条件）
 
-**Goal**: ユーザーがシンプルなキーワードでRSSフィードアイテムをフィルタリングできる（大文字小文字を区別しない部分一致）
+**目的**: すべてのユーザーストーリーを実装する前に完了しなければならないコアインフラ
 
-**Independent Test**: RSSフィードURLと「ニュース」などのキーワードを提供し、タイトルまたは説明に「ニュース」が含まれるアイテム（大文字小文字を区別しない）のみが表示されることを確認
+**⚠️ 重要**: このフェーズが完了するまで、ユーザーストーリーの作業を開始できません
 
-### Implementation for User Story 1
+- [ ] T009 src/lib/errors.ts でエラー型を作成（FeedFetchError, ParseError, FilterValidationError, RegexTimeoutError）
+- [ ] T010 [P] data-model.md に従って src/models/feed.ts に RSSFeed インターフェースを作成
+- [ ] T011 [P] data-model.md に従って src/models/feed.ts に FeedItem インターフェースを作成
+- [ ] T012 [P] data-model.md に従って src/models/filter.ts に FilterCriteria 型（KeywordFilter, RegexFilter）を作成
+- [ ] T013 [P] data-model.md に従って src/models/filter.ts に FilterResult インターフェースを作成
+- [ ] T014 fast-xml-parser を使用して URL から RSS を取得する feed-fetcher サービスを src/services/feed-fetcher.ts に実装
+- [ ] T015 he パッケージを使用して src/services/html-decoder.ts に HTML エンティティデコーダーを実装
+- [ ] T016 クエリパラメータ解析を含む Lambda ハンドラーエントリーポイントを src/handlers/lambda.ts に作成
+- [ ] T017 src/handlers/lambda.ts にクエリパラメータ（feedUrl, type, pattern）の入力検証を追加
+- [ ] T018 src/handlers/lambda.ts にエラーから HTTP ステータスコード（400/500）へのマッピングを追加
 
-- [ ] T019 [US1] Create keyword filter strategy in src/services/feed-filter.ts with case-insensitive matching logic
-- [ ] T020 [US1] Implement applyKeywordFilter function in src/services/feed-filter.ts to filter FeedItem array
-- [ ] T021 [US1] Add keyword filter logic to search both title and description fields
-- [ ] T022 [US1] Integrate keyword filter into Lambda handler in src/handlers/lambda.ts
-- [ ] T023 [US1] Implement RSS/Atom XML response generation in src/handlers/lambda.ts preserving original format
-- [ ] T024 [US1] Add validation to ensure pattern is non-empty string
-- [ ] T025 [US1] Handle empty results (no matches) and return empty channel/feed XML
-- [ ] T026 [US1] Add logging for keyword filter operations in src/handlers/lambda.ts
-
-**Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
-
----
-
-## Phase 4: User Story 2 - 正規表現フィルタリング (Priority: P2)
-
-**Goal**: 高度なユーザーが正規表現を使用して複雑なマッチングパターンを作成できる
-
-**Independent Test**: 「^\[News\]」のような正規表現パターンを提供し、「[News]」で始まるタイトルのアイテムのみがマッチすることを確認
-
-### Implementation for User Story 2
-
-- [ ] T027 [US2] Create regex filter strategy in src/services/feed-filter.ts with regex compilation and validation
-- [ ] T028 [US2] Implement applyRegexFilter function in src/services/feed-filter.ts to filter FeedItem array
-- [ ] T029 [US2] Add regex pattern validation with try-catch for invalid patterns in src/services/feed-filter.ts
-- [ ] T030 [US2] Implement regex timeout mechanism (2000ms) using AbortController in src/services/feed-filter.ts
-- [ ] T031 [US2] Add regex filter logic to search both title and description fields
-- [ ] T032 [US2] Integrate regex filter into Lambda handler in src/handlers/lambda.ts
-- [ ] T033 [US2] Handle FilterValidationError for invalid regex patterns with 400 error response
-- [ ] T034 [US2] Handle RegexTimeoutError for complex patterns with 500 error response
-- [ ] T035 [US2] Add logging for regex filter operations in src/handlers/lambda.ts
-
-**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
+**チェックポイント**: 基盤準備完了 - ユーザーストーリーの実装を並行して開始可能
 
 ---
 
-## Phase 5: User Story 3 - フィルタモード選択 (Priority: P3)
+## フェーズ3: ユーザーストーリー1 - 基本的なキーワードフィルタリング (優先度: P1) 🎯 MVP
 
-**Goal**: ユーザーがキーワードと正規表現フィルタリングモードを簡単に切り替えられる
+**目標**: ユーザーがシンプルなキーワードでRSSフィードアイテムをフィルタリングできる（大文字小文字を区別しない部分一致）
 
-**Independent Test**: キーワードモードで「test.*data」を入力し（文字通りマッチ）、次に正規表現モードに切り替えて（パターンマッチ）、結果が適切に変更されることを確認
+**独立テスト**: RSSフィードURLと「ニュース」などのキーワードを提供し、タイトルまたは説明に「ニュース」が含まれるアイテム（大文字小文字を区別しない）のみが表示されることを確認
 
-### Implementation for User Story 3
+### ユーザーストーリー1の実装
 
-- [ ] T036 [US3] Create unified filter function in src/services/feed-filter.ts accepting FilterCriteria union type
-- [ ] T037 [US3] Implement filter type discrimination logic in src/services/feed-filter.ts (keyword vs regex)
-- [ ] T038 [US3] Update Lambda handler to route to appropriate filter based on type parameter
-- [ ] T039 [US3] Add validation to ensure type parameter is 'keyword' or 'regex'
-- [ ] T040 [US3] Handle invalid type parameter with 400 error response
-- [ ] T041 [US3] Add integration tests demonstrating mode switching behavior in tests/integration/lambda.test.ts
+- [ ] T019 [US1] 大文字小文字を区別しないマッチングロジックを持つキーワードフィルタストラテジーを src/services/feed-filter.ts に作成
+- [ ] T020 [US1] FeedItem 配列をフィルタリングする applyKeywordFilter 関数を src/services/feed-filter.ts に実装
+- [ ] T021 [US1] タイトルと説明の両方のフィールドを検索するキーワードフィルタロジックを追加
+- [ ] T022 [US1] src/handlers/lambda.ts の Lambda ハンドラーにキーワードフィルタを統合
+- [ ] T023 [US1] 元の形式を保持する RSS/Atom XML レスポンス生成を src/handlers/lambda.ts に実装
+- [ ] T024 [US1] pattern が非空文字列であることを確認する検証を追加
+- [ ] T025 [US1] 空の結果（マッチなし）を処理し、空の channel/feed XML を返す
+- [ ] T026 [US1] src/handlers/lambda.ts にキーワードフィルタ操作のロギングを追加
 
-**Checkpoint**: All user stories should now be independently functional
-
----
-
-## Phase 6: Polish & Cross-Cutting Concerns
-
-**Purpose**: Improvements that affect multiple user stories
-
-- [ ] T042 [P] Add comprehensive unit tests for feed-fetcher in tests/unit/feed-fetcher.test.ts
-- [ ] T043 [P] Add comprehensive unit tests for feed-filter in tests/unit/feed-filter.test.ts
-- [ ] T044 [P] Add comprehensive unit tests for html-decoder in tests/unit/html-decoder.test.ts
-- [ ] T045 [P] Add integration tests for Lambda handler in tests/integration/lambda.test.ts
-- [ ] T046 [P] Update README.md with deployment instructions and usage examples
-- [ ] T047 [P] Add performance monitoring logs (execution time per filter operation)
-- [ ] T048 Validate against quickstart.md scenarios (all 4 examples must work)
-- [ ] T049 [P] Code review and refactoring for clarity and maintainability
-- [ ] T050 [P] Final constitution.md compliance check (Simplicity, Type Safety, Error Handling, Stateless)
+**チェックポイント**: この時点で、ユーザーストーリー1は完全に機能し、独立してテスト可能
 
 ---
 
-## Dependencies & Execution Order
+## フェーズ4: ユーザーストーリー2 - 正規表現フィルタリング (優先度: P2)
 
-### Phase Dependencies
+**目標**: 高度なユーザーが正規表現を使用して複雑なマッチングパターンを作成できる
 
-- **Setup (Phase 1)**: No dependencies - can start immediately
-- **Foundational (Phase 2)**: Depends on Setup completion - BLOCKS all user stories
-- **User Stories (Phase 3-5)**: All depend on Foundational phase completion
-  - User stories can then proceed in parallel (if staffed)
-  - Or sequentially in priority order (P1 → P2 → P3)
-- **Polish (Phase 6)**: Depends on all desired user stories being complete
+**独立テスト**: 「^\[News\]」のような正規表現パターンを提供し、「[News]」で始まるタイトルのアイテムのみがマッチすることを確認
 
-### User Story Dependencies
+### ユーザーストーリー2の実装
 
-- **User Story 1 (P1)**: Can start after Foundational (Phase 2) - No dependencies on other stories
-- **User Story 2 (P2)**: Can start after Foundational (Phase 2) - Independent of US1 but uses same base infrastructure
-- **User Story 3 (P3)**: Can start after Foundational (Phase 2) - Integrates US1 and US2 but independently testable
+- [ ] T027 [US2] 正規表現コンパイルと検証を含む正規表現フィルタストラテジーを src/services/feed-filter.ts に作成
+- [ ] T028 [US2] FeedItem 配列をフィルタリングする applyRegexFilter 関数を src/services/feed-filter.ts に実装
+- [ ] T029 [US2] 無効なパターンに対して try-catch で正規表現パターン検証を src/services/feed-filter.ts に追加
+- [ ] T030 [US2] AbortController を使用して正規表現タイムアウト機構（2000ms）を src/services/feed-filter.ts に実装
+- [ ] T031 [US2] タイトルと説明の両方のフィールドを検索する正規表現フィルタロジックを追加
+- [ ] T032 [US2] src/handlers/lambda.ts の Lambda ハンドラーに正規表現フィルタを統合
+- [ ] T033 [US2] 無効な正規表現パターンに対する FilterValidationError を 400 エラーレスポンスで処理
+- [ ] T034 [US2] 複雑なパターンに対する RegexTimeoutError を 500 エラーレスポンスで処理
+- [ ] T035 [US2] src/handlers/lambda.ts に正規表現フィルタ操作のロギングを追加
 
-### Within Each User Story
-
-- Models before services
-- Services before handlers
-- Core implementation before integration
-- Validation before error handling
-- Story complete before moving to next priority
-
-### Parallel Opportunities
-
-- All Setup tasks marked [P] can run in parallel (T003-T008)
-- All Foundational model creation tasks marked [P] can run in parallel (T010-T013)
-- Once Foundational phase completes, all user stories can start in parallel (if team capacity allows)
-- All unit test tasks marked [P] can run in parallel (T042-T045)
-- Different user stories can be worked on in parallel by different team members
+**チェックポイント**: この時点で、ユーザーストーリー1と2の両方が独立して動作する
 
 ---
 
-## Parallel Example: User Story 1
+## フェーズ5: ユーザーストーリー3 - フィルタモード選択 (優先度: P3)
+
+**目標**: ユーザーがキーワードと正規表現フィルタリングモードを簡単に切り替えられる
+
+**独立テスト**: キーワードモードで「test.*data」を入力し（文字通りマッチ）、次に正規表現モードに切り替えて（パターンマッチ）、結果が適切に変更されることを確認
+
+### ユーザーストーリー3の実装
+
+- [ ] T036 [US3] FilterCriteria ユニオン型を受け入れる統一フィルタ関数を src/services/feed-filter.ts に作成
+- [ ] T037 [US3] src/services/feed-filter.ts にフィルタタイプ判別ロジック（keyword vs regex）を実装
+- [ ] T038 [US3] type パラメータに基づいて適切なフィルタにルーティングする Lambda ハンドラーを更新
+- [ ] T039 [US3] type パラメータが 'keyword' または 'regex' であることを確認する検証を追加
+- [ ] T040 [US3] 無効な type パラメータを 400 エラーレスポンスで処理
+- [ ] T041 [US3] tests/integration/lambda.test.ts にモード切り替え動作を示す統合テストを追加
+
+**チェックポイント**: すべてのユーザーストーリーが独立して機能する
+
+---
+
+## フェーズ6: 仕上げと横断的関心事
+
+**目的**: 複数のユーザーストーリーに影響する改善
+
+- [ ] T042 [P] tests/unit/feed-fetcher.test.ts に feed-fetcher の包括的なユニットテストを追加
+- [ ] T043 [P] tests/unit/feed-filter.test.ts に feed-filter の包括的なユニットテストを追加
+- [ ] T044 [P] tests/unit/html-decoder.test.ts に html-decoder の包括的なユニットテストを追加
+- [ ] T045 [P] tests/integration/lambda.test.ts に Lambda ハンドラーの統合テストを追加
+- [ ] T046 [P] デプロイ手順と使用例で README.md を更新
+- [ ] T047 [P] パフォーマンス監視ログを追加（フィルタ操作ごとの実行時間）
+- [ ] T048 quickstart.md のシナリオに対して検証（4つの例すべてが動作する必要がある）
+- [ ] T049 [P] 明確性と保守性のためのコードレビューとリファクタリング
+- [ ] T050 [P] constitution.md 準拠の最終チェック（Simplicity, Type Safety, Error Handling, Stateless）
+
+---
+
+## 依存関係と実行順序
+
+### フェーズの依存関係
+
+- **セットアップ（フェーズ1）**: 依存関係なし - すぐに開始可能
+- **基盤（フェーズ2）**: セットアップの完了に依存 - すべてのユーザーストーリーをブロック
+- **ユーザーストーリー（フェーズ3-5）**: すべて基盤フェーズの完了に依存
+  - その後、ユーザーストーリーは並行して進行可能（人員がいる場合）
+  - または優先順位順に順次実行（P1 → P2 → P3）
+- **仕上げ（フェーズ6）**: すべての希望するユーザーストーリーが完了していることに依存
+
+### ユーザーストーリーの依存関係
+
+- **ユーザーストーリー1（P1）**: 基盤（フェーズ2）後に開始可能 - 他のストーリーに依存しない
+- **ユーザーストーリー2（P2）**: 基盤（フェーズ2）後に開始可能 - US1に依存しないが同じ基盤インフラを使用
+- **ユーザーストーリー3（P3）**: 基盤（フェーズ2）後に開始可能 - US1とUS2を統合するが独立してテスト可能
+
+### 各ユーザーストーリー内
+
+- モデル → サービス → ハンドラーの順
+- コア実装 → 統合の順
+- 検証 → エラー処理の順
+- ストーリー完了 → 次の優先度に移行
+
+### 並列実行の機会
+
+- セットアップで [P] マークされたすべてのタスクは並列実行可能（T003-T008）
+- 基盤で [P] マークされたすべてのモデル作成タスクは並列実行可能（T010-T013）
+- 基盤フェーズ完了後、すべてのユーザーストーリーを並行開始可能（チーム能力が許せば）
+- [P] マークされたすべてのユニットテストタスクは並列実行可能（T042-T045）
+- 異なるユーザーストーリーは異なるチームメンバーが並行作業可能
+
+---
+
+## 並列実行の例: ユーザーストーリー1
 
 ```bash
-# After Foundational phase is complete, launch User Story 1 tasks:
-# These can be done in parallel if team has capacity:
-Task T019: "Create keyword filter strategy in src/services/feed-filter.ts"
-Task T024: "Add validation to ensure pattern is non-empty string"
+# 基盤フェーズ完了後、ユーザーストーリー1のタスクを開始:
+# チームに能力があれば、これらは並列実行可能:
+タスク T019: "src/services/feed-filter.ts にキーワードフィルタストラテジーを作成"
+タスク T024: "pattern が非空文字列であることを確認する検証を追加"
 
-# These must be sequential:
-Task T019 → Task T020 → Task T022 → Task T023 (depends on previous implementation)
+# これらは順次実行が必要:
+タスク T019 → タスク T020 → タスク T022 → タスク T023（前の実装に依存）
 ```
 
 ---
 
-## Parallel Example: Polish Phase
+## 並列実行の例: 仕上げフェーズ
 
 ```bash
-# Launch all unit tests together after implementation is complete:
-Task T042: "Add unit tests for feed-fetcher"
-Task T043: "Add unit tests for feed-filter"  
-Task T044: "Add unit tests for html-decoder"
-Task T045: "Add integration tests for Lambda handler"
+# 実装完了後、すべてのユニットテストを一緒に開始:
+タスク T042: "feed-fetcher のユニットテストを追加"
+タスク T043: "feed-filter のユニットテストを追加"  
+タスク T044: "html-decoder のユニットテストを追加"
+タスク T045: "Lambda ハンドラーの統合テストを追加"
 
-# Documentation and code cleanup in parallel:
-Task T046: "Update README.md"
-Task T049: "Code review and refactoring"
+# ドキュメントとコードクリーンアップを並列実行:
+タスク T046: "README.md を更新"
+タスク T049: "コードレビューとリファクタリング"
 ```
 
 ---
 
-## Implementation Strategy
+## 実装戦略
 
-### MVP First (User Story 1 Only)
+### MVP優先（ユーザーストーリー1のみ）
 
-1. Complete Phase 1: Setup (T001-T008)
-2. Complete Phase 2: Foundational (T009-T018) - CRITICAL - blocks all stories
-3. Complete Phase 3: User Story 1 (T019-T026)
-4. **STOP and VALIDATE**: Test User Story 1 independently using quickstart.md Example 1
-5. Deploy/demo if ready
+1. フェーズ1完了: セットアップ（T001-T008）
+2. フェーズ2完了: 基盤（T009-T018）- 重要 - すべてのストーリーをブロック
+3. フェーズ3完了: ユーザーストーリー1（T019-T026）
+4. **停止して検証**: quickstart.md の例1を使用してユーザーストーリー1を独立してテスト
+5. 準備ができたらデプロイ/デモ
 
-### Incremental Delivery
+### 段階的デリバリー
 
-1. Complete Setup + Foundational → Foundation ready
-2. Add User Story 1 → Test independently → Deploy/Demo (MVP!)
-   - Validates FR-003, SC-001, SC-002
-3. Add User Story 2 → Test independently → Deploy/Demo
-   - Validates FR-004, FR-005, SC-003, SC-008
-4. Add User Story 3 → Test independently → Deploy/Demo
-   - Validates FR-006, SC-004
-5. Each story adds value without breaking previous stories
+1. セットアップ + 基盤を完了 → 基盤準備完了
+2. ユーザーストーリー1を追加 → 独立してテスト → デプロイ/デモ（MVP！）
+   - FR-003, SC-001, SC-002 を検証
+3. ユーザーストーリー2を追加 → 独立してテスト → デプロイ/デモ
+   - FR-004, FR-005, SC-003, SC-008 を検証
+4. ユーザーストーリー3を追加 → 独立してテスト → デプロイ/デモ
+   - FR-006, SC-004 を検証
+5. 各ストーリーが以前のストーリーを壊すことなく価値を追加
 
-### Parallel Team Strategy
+### 並列チーム戦略
 
-With multiple developers:
+複数の開発者がいる場合:
 
-1. Team completes Setup + Foundational together (T001-T018)
-2. Once Foundational is done:
-   - Developer A: User Story 1 (T019-T026)
-   - Developer B: User Story 2 (T027-T035)
-   - Developer C: User Story 3 (T036-T041)
-3. Stories complete and integrate independently
+1. チームで一緒にセットアップ + 基盤を完了（T001-T018）
+2. 基盤完了後:
+   - 開発者A: ユーザーストーリー1（T019-T026）
+   - 開発者B: ユーザーストーリー2（T027-T035）
+   - 開発者C: ユーザーストーリー3（T036-T041）
+3. ストーリーが完了し、独立して統合
 
 ---
 
-## Implementation Notes
+## 実装ノート
 
-### Key Design Patterns
+### 主要な設計パターン
 
-1. **Strategy Pattern**: FilterCriteria union type with keyword/regex discrimination
-2. **Result Type Pattern**: Custom error types for explicit error handling
-3. **Pure Functions**: All filter operations are stateless and side-effect free
-4. **Early Return**: Title match skips description check for performance
+1. **Strategy Pattern**: keyword/regex 判別を持つ FilterCriteria ユニオン型
+2. **Result Type Pattern**: 明示的なエラー処理のためのカスタムエラー型
+3. **Pure Functions**: すべてのフィルタ操作はステートレスで副作用なし
+4. **Early Return**: パフォーマンスのためタイトルマッチ時は説明チェックをスキップ
 
-### Performance Targets
+### パフォーマンス目標
 
-- **1000 items**: Complete filtering within 2 seconds (SC-001)
-- **5000 items**: Complete filtering within 5 seconds (SC-006)
-- **Regex timeout**: 2000ms maximum execution time
-- **Lambda memory**: 1GB recommended
-- **Lambda timeout**: 30 seconds maximum
+- **1000件**: 2秒以内にフィルタリング完了（SC-001）
+- **5000件**: 5秒以内にフィルタリング完了（SC-006）
+- **正規表現タイムアウト**: 最大実行時間 2000ms
+- **Lambda メモリ**: 1GB 推奨
+- **Lambda タイムアウト**: 最大 30秒
 
-### File Organization Summary
+### ファイル構成まとめ
 
 ```text
 src/
 ├── models/
-│   ├── feed.ts          # RSSFeed, FeedItem interfaces (T010, T011)
-│   └── filter.ts        # FilterCriteria, FilterResult types (T012, T013)
+│   ├── feed.ts          # RSSFeed, FeedItem インターフェース (T010, T011)
+│   └── filter.ts        # FilterCriteria, FilterResult 型 (T012, T013)
 ├── services/
-│   ├── feed-fetcher.ts  # RSS fetch & parse with fast-xml-parser (T014)
-│   ├── feed-filter.ts   # Keyword & regex filtering logic (T019-T041)
-│   └── html-decoder.ts  # HTML entity decoding with he (T015)
+│   ├── feed-fetcher.ts  # fast-xml-parser による RSS取得と解析 (T014)
+│   ├── feed-filter.ts   # キーワードと正規表現フィルタリングロジック (T019-T041)
+│   └── html-decoder.ts  # he による HTML エンティティデコード (T015)
 ├── handlers/
-│   └── lambda.ts        # Lambda entry point & request handling (T016-T018)
+│   └── lambda.ts        # Lambda エントリーポイントとリクエスト処理 (T016-T018)
 └── lib/
-    └── errors.ts        # Custom error types (T009)
+    └── errors.ts        # カスタムエラー型 (T009)
 
 tests/
 ├── unit/
@@ -280,52 +279,52 @@ tests/
     └── lambda.test.ts         # (T045)
 ```
 
-### Constitution Compliance Checkpoints
+### 憲章準拠チェックポイント
 
-- **Simplicity First**: Minimal dependencies (fast-xml-parser, he, esbuild, vitest only)
-- **Type Safety**: TypeScript strict mode, no any types, explicit function signatures
-- **Error Handling**: Custom error types with explicit handling at Lambda boundary
-- **Stateless Design**: No shared state between requests, pure functional approach
-
----
-
-## Notes
-
-- [P] tasks = different files, no dependencies
-- [Story] label maps task to specific user story for traceability
-- Each user story should be independently completable and testable
-- Tests are OPTIONAL per feature spec (not explicitly requested)
-- Commit after each task or logical group
-- Stop at any checkpoint to validate story independently
-- Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence
+- **Simplicity First**: 最小限の依存関係（fast-xml-parser, he, esbuild, vitest のみ）
+- **Type Safety**: TypeScript strict モード、any 型なし、明示的な関数シグネチャ
+- **Error Handling**: Lambda 境界での明示的な処理を持つカスタムエラー型
+- **Stateless Design**: リクエスト間で共有状態なし、純粋関数アプローチ
 
 ---
 
-## Summary
+## ノート
 
-**Total Tasks**: 50 tasks across 6 phases
+- [P] タスク = 異なるファイル、依存関係なし
+- [Story] ラベルはトレーサビリティのためタスクを特定のユーザーストーリーにマッピング
+- 各ユーザーストーリーは独立して完了およびテスト可能
+- 機能仕様に従い、テストはオプション（明示的に要求されていない）
+- 各タスクまたは論理的なグループの後にコミット
+- 任意のチェックポイントで停止してストーリーを独立して検証
+- 避けるべき: 曖昧なタスク、同じファイルの競合、独立性を壊すストーリー間の依存関係
 
-**Task Count per User Story**:
-- Setup: 8 tasks
-- Foundational: 10 tasks (blocks all stories)
-- User Story 1 (P1): 8 tasks - MVP scope
-- User Story 2 (P2): 9 tasks
-- User Story 3 (P3): 6 tasks
-- Polish: 9 tasks
+---
 
-**Parallel Opportunities Identified**:
-- Phase 1: 6 parallel tasks (T003-T008)
-- Phase 2: 4 parallel model definitions (T010-T013)
-- Phase 6: 5 parallel test/doc tasks (T042-T047)
+## まとめ
 
-**Independent Test Criteria**:
-- US1: Keyword filter returns only matching items (case-insensitive)
-- US2: Regex filter validates patterns and handles timeouts correctly
-- US3: Filter type switching produces appropriate results for same pattern
+**総タスク数**: 6フェーズにわたる50タスク
 
-**Suggested MVP Scope**: Phase 1 + Phase 2 + Phase 3 (User Story 1 only)
-- This delivers the core keyword filtering functionality
-- Can be validated using quickstart.md Example 1
-- Represents minimum viable product for basic use cases
+**ユーザーストーリーごとのタスク数**:
+- セットアップ: 8タスク
+- 基盤: 10タスク（すべてのストーリーをブロック）
+- ユーザーストーリー1（P1）: 8タスク - MVP範囲
+- ユーザーストーリー2（P2）: 9タスク
+- ユーザーストーリー3（P3）: 6タスク
+- 仕上げ: 9タスク
 
-**Format Validation**: ✅ All tasks follow the checklist format (checkbox, ID, labels, file paths)
+**特定された並列実行の機会**:
+- フェーズ1: 6つの並列タスク（T003-T008）
+- フェーズ2: 4つの並列モデル定義（T010-T013）
+- フェーズ6: 5つの並列テスト/ドキュメントタスク（T042-T047）
+
+**独立テスト基準**:
+- US1: キーワードフィルタは一致するアイテムのみを返す（大文字小文字を区別しない）
+- US2: 正規表現フィルタはパターンを検証し、タイムアウトを正しく処理
+- US3: フィルタタイプの切り替えで同じパターンに対して適切な結果を生成
+
+**推奨MVP範囲**: フェーズ1 + フェーズ2 + フェーズ3（ユーザーストーリー1のみ）
+- これによりコアキーワードフィルタリング機能を提供
+- quickstart.md の例1を使用して検証可能
+- 基本ユースケースの最小実行可能製品を表す
+
+**形式検証**: ✅ すべてのタスクはチェックリスト形式に従う（チェックボックス、ID、ラベル、ファイルパス）
