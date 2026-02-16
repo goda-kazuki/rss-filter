@@ -5,6 +5,12 @@
 **Status**: Draft  
 **Input**: User description: "キーワードと正規表現に基づいたRSSフィードのフィルタリング機能を追加。既存コードはないため、両方の機能を一緒に実装する。ユーザーはキーワード（部分一致）または正規表現のいずれかでフィルタ条件を指定できる。"
 
+## Clarifications
+
+### Session 2026-02-16
+
+- Q: Should filters persist across application sessions (e.g., saved to configuration file and restored on restart), reset when the application closes, or remain active only during current runtime? → A: B - Filters reset when application closes. Additionally, no UI implementation is needed at this time (likely CLI tool or library).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Basic Keyword Filtering (Priority: P1)
@@ -67,6 +73,11 @@ Advanced users want to use regular expressions to create complex pattern-based f
 
 ## Requirements *(mandatory)*
 
+### Implementation Context
+
+- **Interface Type**: CLI tool or library (no graphical UI required)
+- **Session Scope**: Filter state exists only during application runtime; no persistence layer needed
+
 ### Functional Requirements
 
 - **FR-001**: System MUST allow users to enter keyword filters for RSS feed content
@@ -79,7 +90,7 @@ Advanced users want to use regular expressions to create complex pattern-based f
 - **FR-008**: System MUST apply filters to both existing and newly fetched feed items
 - **FR-009**: System MUST allow users to clear active filters to view all content
 - **FR-010**: System MUST support multiple keywords with AND/OR logical operations
-- **FR-011**: System MUST preserve filter settings [NEEDS CLARIFICATION: Should filters persist across sessions, or reset when user closes the application?]
+- **FR-011**: System MUST NOT persist filter settings across application sessions; filters reset when application closes
 - **FR-012**: System MUST handle HTML entities and encoded characters in feed content before matching
 - **FR-013**: System MUST display an appropriate message when no items match the filter criteria
 - **FR-014**: System MUST allow users to switch between filter modes without losing their filter input
