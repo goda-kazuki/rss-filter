@@ -29,14 +29,14 @@ description: "RSSフィードフィルタリング機能の実装タスク"
 
 **目的**: プロジェクト初期化と基本構造
 
-- [ ] T001 plan.md に従って src/, tests/ ディレクトリのプロジェクト構造を作成
-- [ ] T002 package.json で TypeScript プロジェクトを初期化（typescript 5.x, node 20.x）
-- [ ] T003 [P] 依存関係をインストール: fast-xml-parser, he（HTMLエンティティデコード用）
-- [ ] T004 [P] 開発依存関係をインストール: vitest, esbuild, @types/node
-- [ ] T005 [P] strict モード有効で tsconfig.json を設定
-- [ ] T006 [P] constitution.md の要件に従って ESLint と Prettier を設定
-- [ ] T007 [P] build.config.ts で Lambda バンドル用の esbuild 設定をセットアップ
-- [ ] T008 [P] ユニットテスト用の vitest.config.ts を作成
+- [X] T001 plan.md に従って src/, tests/ ディレクトリのプロジェクト構造を作成
+- [X] T002 package.json で TypeScript プロジェクトを初期化（typescript 5.x, node 20.x）
+- [X] T003 [P] 依存関係をインストール: fast-xml-parser, he（HTMLエンティティデコード用）
+- [X] T004 [P] 開発依存関係をインストール: vitest, esbuild, @types/node
+- [X] T005 [P] strict モード有効で tsconfig.json を設定
+- [X] T006 [P] constitution.md の要件に従って ESLint と Prettier を設定
+- [X] T007 [P] build.config.ts で Lambda バンドル用の esbuild 設定をセットアップ
+- [X] T008 [P] ユニットテスト用の vitest.config.ts を作成
 
 ---
 
@@ -46,16 +46,16 @@ description: "RSSフィードフィルタリング機能の実装タスク"
 
 **⚠️ 重要**: このフェーズが完了するまで、ユーザーストーリーの作業を開始できません
 
-- [ ] T009 src/lib/errors.ts でエラー型を作成（FeedFetchError, ParseError, FilterValidationError, RegexTimeoutError）
-- [ ] T010 [P] data-model.md に従って src/models/feed.ts に RSSFeed インターフェースを作成
-- [ ] T011 [P] data-model.md に従って src/models/feed.ts に FeedItem インターフェースを作成
-- [ ] T012 [P] data-model.md に従って src/models/filter.ts に FilterCriteria 型（KeywordFilter, RegexFilter）を作成
-- [ ] T013 [P] data-model.md に従って src/models/filter.ts に FilterResult インターフェースを作成
-- [ ] T014 fast-xml-parser を使用して URL から RSS を取得する feed-fetcher サービスを src/services/feed-fetcher.ts に実装
-- [ ] T015 he パッケージを使用して src/services/html-decoder.ts に HTML エンティティデコーダーを実装
-- [ ] T016 クエリパラメータ解析を含む Lambda ハンドラーエントリーポイントを src/handlers/lambda.ts に作成
-- [ ] T017 src/handlers/lambda.ts にクエリパラメータ（feedUrl, type, pattern）の入力検証を追加
-- [ ] T018 src/handlers/lambda.ts にエラーから HTTP ステータスコード（400/500）へのマッピングを追加
+- [X] T009 src/lib/errors.ts でエラー型を作成（FeedFetchError, ParseError, FilterValidationError, RegexTimeoutError）
+- [X] T010 [P] data-model.md に従って src/models/feed.ts に RSSFeed インターフェースを作成
+- [X] T011 [P] data-model.md に従って src/models/feed.ts に FeedItem インターフェースを作成
+- [X] T012 [P] data-model.md に従って src/models/filter.ts に FilterCriteria 型（KeywordFilter, RegexFilter）を作成
+- [X] T013 [P] data-model.md に従って src/models/filter.ts に FilterResult インターフェースを作成
+- [X] T014 fast-xml-parser を使用して URL から RSS を取得する feed-fetcher サービスを src/services/feed-fetcher.ts に実装
+- [X] T015 he パッケージを使用して src/services/html-decoder.ts に HTML エンティティデコーダーを実装
+- [X] T016 クエリパラメータ解析を含む Lambda ハンドラーエントリーポイントを src/handlers/lambda.ts に作成
+- [X] T017 src/handlers/lambda.ts にクエリパラメータ（feedUrl, type, pattern）の入力検証を追加
+- [X] T018 src/handlers/lambda.ts にエラーから HTTP ステータスコード（400/500）へのマッピングを追加
 
 **チェックポイント**: 基盤準備完了 - ユーザーストーリーの実装を並行して開始可能
 
@@ -69,14 +69,14 @@ description: "RSSフィードフィルタリング機能の実装タスク"
 
 ### ユーザーストーリー1の実装
 
-- [ ] T019 [US1] 大文字小文字を区別しないマッチングロジックを持つキーワードフィルタストラテジーを src/services/feed-filter.ts に作成
-- [ ] T020 [US1] FeedItem 配列をフィルタリングする applyKeywordFilter 関数を src/services/feed-filter.ts に実装
-- [ ] T021 [US1] タイトルと説明の両方のフィールドを検索するキーワードフィルタロジックを追加
-- [ ] T022 [US1] src/handlers/lambda.ts の Lambda ハンドラーにキーワードフィルタを統合
-- [ ] T023 [US1] 元の形式を保持する RSS/Atom XML レスポンス生成を src/handlers/lambda.ts に実装
-- [ ] T024 [US1] pattern が非空文字列であることを確認する検証を追加
-- [ ] T025 [US1] 空の結果（マッチなし）を処理し、空の channel/feed XML を返す
-- [ ] T026 [US1] src/handlers/lambda.ts にキーワードフィルタ操作のロギングを追加
+- [X] T019 [US1] 大文字小文字を区別しないマッチングロジックを持つキーワードフィルタストラテジーを src/services/feed-filter.ts に作成
+- [X] T020 [US1] FeedItem 配列をフィルタリングする applyKeywordFilter 関数を src/services/feed-filter.ts に実装
+- [X] T021 [US1] タイトルと説明の両方のフィールドを検索するキーワードフィルタロジックを追加
+- [X] T022 [US1] src/handlers/lambda.ts の Lambda ハンドラーにキーワードフィルタを統合
+- [X] T023 [US1] 元の形式を保持する RSS/Atom XML レスポンス生成を src/handlers/lambda.ts に実装
+- [X] T024 [US1] pattern が非空文字列であることを確認する検証を追加
+- [X] T025 [US1] 空の結果（マッチなし）を処理し、空の channel/feed XML を返す
+- [X] T026 [US1] src/handlers/lambda.ts にキーワードフィルタ操作のロギングを追加
 
 **チェックポイント**: この時点で、ユーザーストーリー1は完全に機能し、独立してテスト可能
 
@@ -90,15 +90,15 @@ description: "RSSフィードフィルタリング機能の実装タスク"
 
 ### ユーザーストーリー2の実装
 
-- [ ] T027 [US2] 正規表現コンパイルと検証を含む正規表現フィルタストラテジーを src/services/feed-filter.ts に作成
-- [ ] T028 [US2] FeedItem 配列をフィルタリングする applyRegexFilter 関数を src/services/feed-filter.ts に実装
-- [ ] T029 [US2] 無効なパターンに対して try-catch で正規表現パターン検証を src/services/feed-filter.ts に追加
-- [ ] T030 [US2] AbortController を使用して正規表現タイムアウト機構（2000ms）を src/services/feed-filter.ts に実装
-- [ ] T031 [US2] タイトルと説明の両方のフィールドを検索する正規表現フィルタロジックを追加
-- [ ] T032 [US2] src/handlers/lambda.ts の Lambda ハンドラーに正規表現フィルタを統合
-- [ ] T033 [US2] 無効な正規表現パターンに対する FilterValidationError を 400 エラーレスポンスで処理
-- [ ] T034 [US2] 複雑なパターンに対する RegexTimeoutError を 500 エラーレスポンスで処理
-- [ ] T035 [US2] src/handlers/lambda.ts に正規表現フィルタ操作のロギングを追加
+- [X] T027 [US2] 正規表現コンパイルと検証を含む正規表現フィルタストラテジーを src/services/feed-filter.ts に作成
+- [X] T028 [US2] FeedItem 配列をフィルタリングする applyRegexFilter 関数を src/services/feed-filter.ts に実装
+- [X] T029 [US2] 無効なパターンに対して try-catch で正規表現パターン検証を src/services/feed-filter.ts に追加
+- [X] T030 [US2] AbortController を使用して正規表現タイムアウト機構（2000ms）を src/services/feed-filter.ts に実装
+- [X] T031 [US2] タイトルと説明の両方のフィールドを検索する正規表現フィルタロジックを追加
+- [X] T032 [US2] src/handlers/lambda.ts の Lambda ハンドラーに正規表現フィルタを統合
+- [X] T033 [US2] 無効な正規表現パターンに対する FilterValidationError を 400 エラーレスポンスで処理
+- [X] T034 [US2] 複雑なパターンに対する RegexTimeoutError を 500 エラーレスポンスで処理
+- [X] T035 [US2] src/handlers/lambda.ts に正規表現フィルタ操作のロギングを追加
 
 **チェックポイント**: この時点で、ユーザーストーリー1と2の両方が独立して動作する
 
@@ -112,11 +112,11 @@ description: "RSSフィードフィルタリング機能の実装タスク"
 
 ### ユーザーストーリー3の実装
 
-- [ ] T036 [US3] FilterCriteria ユニオン型を受け入れる統一フィルタ関数を src/services/feed-filter.ts に作成
-- [ ] T037 [US3] src/services/feed-filter.ts にフィルタタイプ判別ロジック（keyword vs regex）を実装
-- [ ] T038 [US3] type パラメータに基づいて適切なフィルタにルーティングする Lambda ハンドラーを更新
-- [ ] T039 [US3] type パラメータが 'keyword' または 'regex' であることを確認する検証を追加
-- [ ] T040 [US3] 無効な type パラメータを 400 エラーレスポンスで処理
+- [X] T036 [US3] FilterCriteria ユニオン型を受け入れる統一フィルタ関数を src/services/feed-filter.ts に作成
+- [X] T037 [US3] src/services/feed-filter.ts にフィルタタイプ判別ロジック（keyword vs regex）を実装
+- [X] T038 [US3] type パラメータに基づいて適切なフィルタにルーティングする Lambda ハンドラーを更新
+- [X] T039 [US3] type パラメータが 'keyword' または 'regex' であることを確認する検証を追加
+- [X] T040 [US3] 無効な type パラメータを 400 エラーレスポンスで処理
 - [ ] T041 [US3] tests/integration/lambda.test.ts にモード切り替え動作を示す統合テストを追加
 
 **チェックポイント**: すべてのユーザーストーリーが独立して機能する
