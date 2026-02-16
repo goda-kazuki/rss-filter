@@ -176,3 +176,49 @@ ISC
 ## 作成者
 
 このプロジェクトは [SpecKit](specs/) ワークフローを使用して作成されました。
+
+## メモ
+
+### /speckit.constitution
+
+プロジェクトの原則を決めるようなイメージ
+
+### rss-filter.worktrees
+
+Git の worktree 機能を利用したディレクトリ
+
+### /speckit.specify
+
+仕様をヒアリングするようなイメージ
+2回目以降に開発する場合は、このコマンドから。
+
+生成されたファイルをレビューする順番
+
+- plan.md - 全体の実装計画（まず全体像を把握）
+- research.md - 技術的な決定事項
+- data-model.md - データモデル
+- api-contract.md - API契約（人間が読みやすい）
+- openapi.yaml - API仕様（技術的）
+- quickstart.md - クイックスタートガイド
+- copilot-instructions.md - エージェント設定
+
+### /speckit.plan
+
+技術スタックやアーキテクチャの決定
+
+### /speckit.tasks
+
+実装のタスクを生成する
+
+### /speckit.implement
+
+タスクの実行
+
+
+## 気になる点
+
+仕様変更があったとき、最新の情報はどこを見ればいいのか
+
+プルリクエストを出すタイミング（粒度が大きい）
+
+worktree は VSCode で確認しづらい・・・
