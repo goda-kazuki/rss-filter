@@ -51,7 +51,7 @@
 
 ### Rationale:
 - **壊滅的バックトラッキング対策**: ユーザー入力の正規表現が無限ループを引き起こす可能性がある
-- **実装方法**: `AbortController`とタイムアウト(500ms)で正規表現実行を制限
+- **実装方法**: `AbortController`とタイムアウト(2000ms)で正規表現実行を制限
 - **エラーハンドリング**: タイムアウト発生時は「複雑すぎる正規表現パターンです」とユーザーに通知
 - **検証**: 正規表現コンパイル時に`new RegExp()`の構文エラーをキャッチ
 
@@ -61,7 +61,7 @@
 
 ### Best Practices:
 ```typescript
-function safeRegexMatch(text: string, pattern: string, timeout: number = 500): boolean {
+function safeRegexMatch(text: string, pattern: string, timeout: number = 2000): boolean {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
   

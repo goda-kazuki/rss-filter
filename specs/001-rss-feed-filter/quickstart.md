@@ -22,13 +22,13 @@ RSS Feed Filter APIは、RSSフィードからキーワードまたは正規表�
 ### 1. API Endpoint
 
 ```
-GET https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter
+GET https://{your-lambda-url}.lambda-url.ap-northeast-1.on.aws/filter
 ```
 
 ### 2. Basic Request (Keyword Filter)
 
 ```bash
-curl "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://example.com/feed.xml&type=keyword&pattern=technology"
+curl "https://{your-lambda-url}.lambda-url.ap-northeast-1.on.aws/filter?feedUrl=https://example.com/feed.xml&type=keyword&pattern=technology"
 ```
 
 ### 3. Response Example (RSS 2.0)
@@ -57,7 +57,7 @@ curl "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https
 ### Example 1: Keyword Search (Case-Insensitive)
 
 ```bash
-curl "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://news.example.com/rss&type=keyword&pattern=AI"
+curl "https://{your-lambda-url}.lambda-url.ap-northeast-1.on.aws/filter?feedUrl=https://news.example.com/rss&type=keyword&pattern=AI"
 ```
 
 **Result**: "AI", "ai", "Ai" すべてマッチ（常に大文字小文字を区別しない）
@@ -67,7 +67,7 @@ curl "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https
 ### Example 2: Regex Filter (Breaking News)
 
 ```bash
-curl "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://news.example.com/rss&type=regex&pattern=%5EBreaking%3A"
+curl "https://{your-lambda-url}.lambda-url.ap-northeast-1.on.aws/filter?feedUrl=https://news.example.com/rss&type=regex&pattern=%5EBreaking%3A"
 ```
 
 **Note**: `%5EBreaking%3A` は `^Breaking:` のURLエンコード
@@ -79,7 +79,7 @@ curl "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https
 ### Example 3: Date Pattern Filter
 
 ```bash
-curl "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://blog.example.com/feed&type=regex&pattern=%5Cd%7B4%7D-%5Cd%7B2%7D-%5Cd%7B2%7D"
+curl "https://{your-lambda-url}.lambda-url.ap-northeast-1.on.aws/filter?feedUrl=https://blog.example.com/feed&type=regex&pattern=%5Cd%7B4%7D-%5Cd%7B2%7D-%5Cd%7B2%7D"
 ```
 
 **Note**: `%5Cd%7B4%7D-%5Cd%7B2%7D-%5Cd%7B2%7D` は `\d{4}-\d{2}-\d{2}` のURLエンコード
@@ -91,7 +91,7 @@ curl "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https
 ### Example 4: Bug Tracker References
 
 ```bash
-curl "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://commits.example.com/feed&type=regex&pattern=bug-%5Cd%2B"
+curl "https://{your-lambda-url}.lambda-url.ap-northeast-1.on.aws/filter?feedUrl=https://commits.example.com/feed&type=regex&pattern=bug-%5Cd%2B"
 ```
 
 **Note**: `bug-%5Cd%2B` は `bug-\d+` のURLエンコード
@@ -160,7 +160,7 @@ Content-Type: text/plain
 |---------------|------|------|
 | アイテム数 | 100-1000件 | 5000件 |
 | レスポンス時間 | <2秒 | <5秒 |
-| 正規表現複雑性 | シンプルなパターン | 500msタイムアウト |
+| 正規表現複雑性 | シンプルなパターン | 2000msタイムアウト |
 
 ---
 
@@ -176,7 +176,7 @@ Content-Type: text/plain
 
 ```bash
 # 公開RSSフィードでテスト
-curl "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://www.reddit.com/r/technology/.rss&type=keyword&pattern=AI"
+curl "https://{your-lambda-url}.lambda-url.ap-northeast-1.on.aws/filter?feedUrl=https://www.reddit.com/r/technology/.rss&type=keyword&pattern=AI"
 ```
 
 ---
@@ -188,114 +188,7 @@ curl "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https
 フィルタリングされたフィードURLを直接RSSリーダーに登録できます：
 
 ```
-https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://example.com/feed.xml&type=keyword&pattern=technology
-```
-
-### cURL でダウンロード
-
-```bash
-# フィルタリング済みフィードをファイルに保存
-curl "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://example.com/feed.xml&type=keyword&pattern=AI" -o filtered-feed.xml
-```
-
----
-
-## JavaScript/TypeScript Client
-
-### Installation
-
-```bash
-npm install axios
-```
-
-### Example Code
-
-```typescript
-import axios from 'axios';
-
-interface FilterParams {
-  feedUrl: string;
-  type: 'keyword' | 'regex';
-  pattern: string;
-}
-
-async function getFilteredFeed(params: FilterParams): Promise<string> {
-  try {
-    const url = new URL('https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter');
-    url.searchParams.set('feedUrl', params.feedUrl);
-    url.searchParams.set('type', params.type);
-    url.searchParams.set('pattern', params.pattern);
-    
-    const response = await axios.get(url.toString(), {
-      headers: { 'Accept': 'application/rss+xml, application/atom+xml' }
-    });
-    
-    console.log('Received RSS/Atom XML:', response.data.length, 'bytes');
-    return response.data; // RSS/Atom XML文字列
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      console.error('API Error:', error.response.status, error.response.data);
-    }
-    throw error;
-  }
-}
-
-// Usage
-const xml = await getFilteredFeed({
-  feedUrl: 'https://example.com/feed.xml',
-  type: 'keyword',
-  pattern: 'technology'
-});
-
-// XMLをパースするか、ファイルに保存
-// fs.writeFileSync('filtered-feed.xml', xml);
-```
-
----
-
-## Python Client
-
-### Installation
-
-```bash
-pip install requests
-```
-
-### Example Code
-
-```python
-import requests
-from urllib.parse import urlencode
-
-def get_filtered_feed(feed_url: str, filter_type: str, pattern: str) -> str:
-    endpoint = "https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter"
-    
-    params = {
-        "feedUrl": feed_url,
-        "type": filter_type,
-        "pattern": pattern
-    }
-    
-    response = requests.get(endpoint, params=params)
-    
-    if response.status_code == 200:
-        print(f"Received {response.headers.get('Content-Type')}")
-        return response.text  # RSS/Atom XML文字列
-    else:
-        print(f"Error {response.status_code}: {response.text}")
-        return None
-
-# Usage
-xml_content = get_filtered_feed(
-    feed_url="https://example.com/feed.xml",
-    filter_type="keyword",
-    pattern="technology"
-)
-
-# XMLファイルとして保存
-if xml_content:
-    with open('filtered-feed.xml', 'w', encoding='utf-8') as f:
-        f.write(xml_content)
+https://{your-lambda-url}.lambda-url.ap-northeast-1.on.aws/filter?feedUrl=https://example.com/feed.xml&type=keyword&pattern=technology
 ```
 
 ---
@@ -308,7 +201,7 @@ if xml_content:
 
 ```bash
 # "climate"に関する記事のみをRSSリーダーに登録
-https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://news.example.com/rss&type=keyword&pattern=climate
+https://{your-lambda-url}.lambda-url.ap-northeast-1.on.aws/filter?feedUrl=https://news.example.com/rss&type=keyword&pattern=climate
 ```
 
 ### 2. Developer Commit Feed
@@ -318,7 +211,7 @@ https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://new
 ```bash
 # "fix:"で始まるコミットメッセージのみ
 # URLエンコード: ^fix: → %5Efix%3A
-https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://commits.example.com/feed&type=regex&pattern=%5Efix%3A
+https://{your-lambda-url}.lambda-url.ap-northeast-1.on.aws/filter?feedUrl=https://commits.example.com/feed&type=regex&pattern=%5Efix%3A
 ```
 
 ### 3. Security Alerts
@@ -328,7 +221,7 @@ https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://com
 ```bash
 # "security", "vulnerability", "CVE"を含むアイテム
 # URLエンコード: security|vulnerability|CVE-\d+ → security%7Cvulnerability%7CCVE-%5Cd%2B
-https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://security.example.com/feed&type=regex&pattern=security%7Cvulnerability%7CCVE-%5Cd%2B
+https://{your-lambda-url}.lambda-url.ap-northeast-1.on.aws/filter?feedUrl=https://security.example.com/feed&type=regex&pattern=security%7Cvulnerability%7CCVE-%5Cd%2B
 ```
 
 ### 4. Blog Post Categories
@@ -338,7 +231,7 @@ https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://sec
 ```bash
 # "[Tutorial]"タグ付き記事
 # URLエンコード: \[Tutorial\] → %5C%5BTutorial%5C%5D
-https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://blog.example.com/feed&type=regex&pattern=%5C%5BTutorial%5C%5D
+https://{your-lambda-url}.lambda-url.ap-northeast-1.on.aws/filter?feedUrl=https://blog.example.com/feed&type=regex&pattern=%5C%5BTutorial%5C%5D
 ```
 
 ---
@@ -348,7 +241,7 @@ https://{your-lambda-url}.lambda-url.us-east-1.on.aws/filter?feedUrl=https://blo
 ### 1. Pattern Design
 
 - **キーワード**: 短い単語またはフレーズを使用
-- **正規表現**: シンプルなパターンを優先、複雑すぎると500msでタイムアウト
+- **正規表現**: シンプルなパターンを優先、複雑すぎると2000msでタイムアウト
 
 ### 2. URL Encoding
 
