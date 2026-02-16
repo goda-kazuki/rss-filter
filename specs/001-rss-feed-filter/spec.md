@@ -67,7 +67,7 @@ A user wants to easily switch between keyword and regex filtering modes without 
 - How does the system handle special characters in keywords (e.g., quotes, backslashes)?
 - What happens when a regex pattern causes catastrophic backtracking (performance issue)?
 - How does the system handle feeds with malformed XML?
-- What happens when feed item content contains HTML tags?
+- What happens when feed item content contains HTML tags? → Decode HTML entities before matching to ensure accurate text search
 
 ## Requirements *(mandatory)*
 
@@ -86,6 +86,7 @@ A user wants to easily switch between keyword and regex filtering modes without 
 - **FR-011**: System MUST show appropriate messages when no items match the filter criteria
 - **FR-012**: System MUST handle feed loading errors gracefully with user-friendly error messages
 - **FR-013**: System MUST search both title and description fields for matches
+- **FR-016**: System MUST decode HTML entities (e.g., `&lt;` → `<`, `&amp;` → `&`) in feed content before applying filters to ensure accurate text matching
 - **FR-014**: System MUST preserve original feed item order when displaying filtered results
 - **FR-015**: Users MUST be able to clear filters and return to viewing all items
 
