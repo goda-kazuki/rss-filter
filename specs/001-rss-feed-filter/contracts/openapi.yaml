@@ -1,0 +1,121 @@
+openapi: 3.0.3
+info:
+  title: RSS Feed Filter API
+  description: |
+    RSSフィードフィルタリングAPI。キーワードまたは正規表現でフィードアイテムをフィルタリングし、RSS/Atom XML形式で返却します。既存のRSSリーダーで直接利用可能です。
+  version: 1.0.0
+  contact:
+    name: RSS Filter Service
+servers:
+  - url: https://{lambdaUrl}
+    description: AWS Lambda Function URL
+    variables:
+      lambdaUrl:
+        default: example.lambda-url.ap-northeast-1.on.aws
+        
+paths:
+  /filter:
+    get:
+      summary: RSSフィードをフィルタリング
+      description: |
+        指定されたRSSフィードURLからフィードを取得し、フィルタ基準に基づいてアイテムをフィルタリングして返却します。
+        レスポンスは元のフィード形式（RSS 2.0またはAtom）で返されます。
+      operationId: filterFeed
+      parameters:
+        - name: feedUrl
+          in: query
+          required: true
+          description: RSSフィードのURL (RSS 2.0またはAtom形式)
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/feed.xml"
+        - name: type
+          in: query
+          required: true
+          description: フィルタタイプ
+          schema:
+            type: string
+            enum: [keyword, regex]
+          example: "keyword"
+        - name: pattern
+          in: query
+          required: true
+          description: フィルタパターン（URLエンコード必須。keywordは常に大文字小文字を区別しない）
+          schema:
+            type: string
+            minLength: 1
+          example: "テクノロジー"
+      responses:
+        '200':
+          description: フィルタリング成功
+          content:
+            application/rss+xml:
+              schema:
+                type: string
+                format: binary
+              example: |
+                <?xml version="1.0" encoding="UTF-8"?>
+                <rss version="2.0">
+                  <channel>
+                    <title>Tech News</title>
+                    <description>Latest technology news</description>
+                    <link>https://example.com</link>
+                    <item>
+                      <title>Breaking: New AI Model Released</title>
+                      <description>A groundbreaking AI model has been announced...</description>
+                      <link>https://example.com/article1</link>
+                      <pubDate>Sat, 15 Feb 2026 10:00:00 GMT</pubDate>
+                    </item>
+                  </channel>
+                </rss>
+            application/atom+xml:
+              schema:
+                type: string
+                format: binary
+              example: |
+                <?xml version="1.0" encoding="UTF-8"?>
+                <feed xmlns="http://www.w3.org/2005/Atom">
+                  <title>Tech News</title>
+                  <subtitle>Latest technology news</subtitle>
+                  <link href="https://example.com"/>
+                  <updated>2026-02-15T10:00:00Z</updated>
+                  <entry>
+                    <title>Breaking: New AI Model Released</title>
+                    <summary>A groundbreaking AI model has been announced...</summary>
+                    <link href="https://example.com/article1"/>
+                    <updated>2026-02-15T10:00:00Z</updated>
+                  </entry>
+                </feed>
+        '400':
+          description: リクエストエラー (無効なフィルタパターン、不正なURL等)
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                invalidRegex:
+                  summary: 無効な正規表現
+                  value: "無効な正規表現パターンです"
+                invalidUrl:
+                  summary: 無効なURL
+                  value: "無効なフィードURLです"
+                emptyPattern:
+                  summary: 空のパターン
+                  value: "フィルタパターンが空です"
+        '500':
+          description: サーバーエラー (フィード取得失敗、解析エラー等)
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                fetchError:
+                  summary: フィード取得失敗
+                  value: "フィードの取得に失敗しました"
+                parseError:
+                  summary: フィード解析失敗
+                  value: "フィードの解析に失敗しました"
+                timeout:
+                  summary: 正規表現タイムアウト
+                  value: "正規表現の処理がタイムアウトしました"
