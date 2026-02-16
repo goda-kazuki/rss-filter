@@ -21,12 +21,11 @@
 | `feedUrl` | string | ✅ | RSSフィードURL (RSS 2.0/Atom) | `https://example.com/feed.xml` |
 | `type` | string | ✅ | フィルタタイプ (`keyword` または `regex`) | `keyword` |
 | `pattern` | string | ✅ | フィルタパターン (URLエンコード) | `テクノロジー` |
-| `caseSensitive` | boolean | ❌ | 大文字小文字区別 (keyword時のみ、デフォルト: false) | `false` |
 
 #### Example: Keyword Filter
 
 ```
-GET /filter?feedUrl=https://example.com/feed.xml&type=keyword&pattern=テクノロジー&caseSensitive=false
+GET /filter?feedUrl=https://example.com/feed.xml&type=keyword&pattern=テクノロジー
 ```
 
 #### Example: Regex Filter
@@ -153,7 +152,6 @@ Content-Type: text/plain; charset=utf-8
 | `feedUrl` | 非空、http/https形式 | "無効なフィードURLです" |
 | `type` | 'keyword' or 'regex' | "無効なフィルタタイプです" |
 | `pattern` | 非空文字列 | "フィルタパターンが空です" |
-| `caseSensitive` (keyword) | boolean (デフォルト: false) | "caseSensitiveはboolean型である必要があります" |
 
 ### Response Guarantees
 

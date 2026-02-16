@@ -41,19 +41,11 @@ paths:
         - name: pattern
           in: query
           required: true
-          description: フィルタパターン（URLエンコード必須）
+          description: フィルタパターン（URLエンコード必須。keywordは常に大文字小文字を区別しない）
           schema:
             type: string
             minLength: 1
           example: "テクノロジー"
-        - name: caseSensitive
-          in: query
-          required: false
-          description: 大文字小文字を区別するか（keywordモードのみ、デフォルト: false）
-          schema:
-            type: boolean
-            default: false
-          example: false
       responses:
         '200':
           description: フィルタリング成功

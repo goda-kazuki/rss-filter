@@ -8,7 +8,7 @@
 
 このシステムは4つの主要エンティティで構成されます:
 
-1. **RSSフeed**: 配信フィードソース
+1. **RSSFeed**: 配信フィードソース
 2. **FeedItem**: フィード内の個別エントリ
 3. **FilterCriteria**: ユーザー定義のフィルタリングルール
 4. **FilterResult**: フィルタ適用結果
@@ -118,11 +118,8 @@ type FilterCriteria = KeywordFilter | RegexFilter;
 interface KeywordFilter {
   type: 'keyword';
   
-  /** キーワードパターン */
+  /** キーワードパターン（常に大文字小文字を区別しない） */
   pattern: string;
-  
-  /** 大文字小文字を区別するか (デフォルト: false) */
-  caseSensitive: boolean;
 }
 
 interface RegexFilter {
@@ -141,7 +138,6 @@ interface RegexFilter {
 |-----------|------|------|-----------------|
 | type | Yes | 'keyword' | "無効なフィルタタイプです" |
 | pattern | Yes | 非空文字列 | "フィルタパターンが空です" |
-| caseSensitive | Yes | boolean | "caseSensitiveはboolean型である必要があります" |
 
 #### Regex Filter
 
@@ -157,8 +153,8 @@ N/A - イミュータブルなデータ構造
 ### Business Logic
 
 - **Keyword Filter**: 
-  - `caseSensitive: false` → タイトル・説明を小文字化して部分一致検索
-  - `caseSensitive: true` → そのまま部分一致検索
+  - タイトル・説明を小文字化して部分一致検索（常に大文字小文字を区別しない）
+  - 大文字小文字を区別したい場合は正規表現フィルタを使用
 - **Regex Filter**:
   - 正規表現コンパイル時にバリデーション
   - タイムアウト500msで実行制限
