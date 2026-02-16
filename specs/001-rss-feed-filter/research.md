@@ -148,36 +148,39 @@ function filterFeedItems(items: FeedItem[], filter: FilterCriteria): FeedItem[] 
 
 ## 6. Lambda関数設計パターン
 
-### Decision: Single-Purpose Function + JSON API
+### Decision: Single-Purpose Function + RSS/Atom XML API
 
 ### Rationale:
 - **エンドポイント設計**:
-  - `POST /filter`: RSSフィードURLとフィルタ基準を受け取り、フィルタリング結果を返却
+  - `GET /filter`: クエリパラメータでフィルタ条件を受け取り、フィルタリング済みのRSS/Atom XMLを返却
+  - 既存のRSSリーダーで直接利用可能なレスポンス形式
 - **リクエストフォーマット**:
-  ```json
-  {
-    "feedUrl": "https://example.com/feed.xml",
-    "filter": {
-      "type": "keyword",
-      "pattern": "テクノロジー",
-      "caseSensitive": false
-    }
-  }
+  ```
+  GET /filter?feedUrl=https://example.com/feed.xml&type=keyword&pattern=テクノロジー&caseSensitive=false
+  GET /filter?feedUrl=https://example.com/feed.xml&type=regex&pattern=%5EBreaking%3A
   ```
 - **レスポンスフォーマット**:
-  ```json
-  {
-    "feed": { "title": "...", "description": "..." },
-    "items": [...],
-    "matchCount": 5,
-    "totalCount": 20,
-    "filterApplied": { "type": "keyword", "pattern": "..." }
-  }
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <rss version="2.0">
+    <channel>
+      <title>Tech News</title>
+      <description>Latest technology news</description>
+      <link>https://example.com</link>
+      <item>
+        <title>Breaking: New AI Model Released</title>
+        <description>A groundbreaking AI model...</description>
+        <link>https://example.com/article1</link>
+        <pubDate>Sat, 15 Feb 2026 10:00:00 GMT</pubDate>
+      </item>
+    </channel>
+  </rss>
   ```
+- **エラーレスポンス**: HTTPステータスコード（400/500）とテキストメッセージ
 
 ### Alternatives Considered:
+- **POST + JSON**: レスポンスがJSON形式のためRSSリーダーで直接利用不可
 - **GraphQL**: 過剰な複雑性、シンプルなユースケースに不要
-- **GET + クエリパラメータ**: URLエンコード問題、正規表現の表現に不適
 
 ---
 

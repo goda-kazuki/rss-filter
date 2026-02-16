@@ -1,187 +1,146 @@
 # API Contract: RSS Feed Filter
 
 **Version**: 1.0.0  
-**Protocol**: REST (JSON)  
+**Protocol**: REST (RSS/Atom XML)  
 **Date**: 2026-02-16
 
 ## Overview
 
-このAPIは単一エンドポイント`POST /filter`を提供し、RSSフィードのフィルタリング機能を実現します。
+このAPIは単一エンドポイント`GET /filter`を提供し、RSSフィードのフィルタリング機能を実現します。レスポンスはRSS/Atom XML形式で、既存のRSSリーダーで直接利用可能です。
 
 ---
 
-## Endpoint: POST /filter
+## Endpoint: GET /filter
 
 ### Request
 
-#### Headers
+#### Query Parameters
 
-```http
-Content-Type: application/json
-```
-
-#### Body Schema
-
-```typescript
-interface FilterRequest {
-  feedUrl: string; // RSSフィードURL (RSS 2.0/Atom)
-  filter: FilterCriteria; // フィルタ基準
-}
-
-type FilterCriteria = KeywordFilter | RegexFilter;
-
-interface KeywordFilter {
-  type: 'keyword';
-  pattern: string; // キーワード (非空)
-  caseSensitive: boolean; // 大文字小文字区別
-}
-
-interface RegexFilter {
-  type: 'regex';
-  pattern: string; // 正規表現パターン (非空)
-}
-```
+| パラメータ | 型 | 必須 | 説明 | 例 |
+|-----------|---|------|------|---|
+| `feedUrl` | string | ✅ | RSSフィードURL (RSS 2.0/Atom) | `https://example.com/feed.xml` |
+| `type` | string | ✅ | フィルタタイプ (`keyword` または `regex`) | `keyword` |
+| `pattern` | string | ✅ | フィルタパターン (URLエンコード) | `テクノロジー` |
+| `caseSensitive` | boolean | ❌ | 大文字小文字区別 (keyword時のみ、デフォルト: false) | `false` |
 
 #### Example: Keyword Filter
 
-```json
-{
-  "feedUrl": "https://example.com/feed.xml",
-  "filter": {
-    "type": "keyword",
-    "pattern": "テクノロジー",
-    "caseSensitive": false
-  }
-}
+```
+GET /filter?feedUrl=https://example.com/feed.xml&type=keyword&pattern=テクノロジー&caseSensitive=false
 ```
 
 #### Example: Regex Filter
 
-```json
-{
-  "feedUrl": "https://example.com/feed.xml",
-  "filter": {
-    "type": "regex",
-    "pattern": "^Breaking:"
-  }
-}
 ```
+GET /filter?feedUrl=https://example.com/feed.xml&type=regex&pattern=%5EBreaking%3A
+```
+（`%5EBreaking%3A` は `^Breaking:` のURLエンコード）
 
 ---
 
 ### Response: Success (200 OK)
 
-#### Body Schema
+#### Headers
 
-```typescript
-interface FilterResponse {
-  feed: FeedMetadata;
-  items: FeedItem[];
-  matchCount: number; // マッチしたアイテム数
-  totalCount: number; // 総アイテム数
-  filterApplied: FilterCriteria; // 適用されたフィルタ
-}
+```http
+Content-Type: application/rss+xml; charset=utf-8
+```
+または
+```http
+Content-Type: application/atom+xml; charset=utf-8
+```
+（元のフィード形式に応じて自動選択）
 
-interface FeedMetadata {
-  title: string;
-  description: string;
-  link?: string;
-}
+#### Body: RSS 2.0 Example
 
-interface FeedItem {
-  title: string;
-  description: string; // HTMLデコード済み
-  link: string;
-  pubDate?: string; // ISO 8601
-  author?: string;
-  categories?: string[];
-  guid?: string;
-}
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Tech News</title>
+    <description>Latest technology news</description>
+    <link>https://example.com</link>
+    <item>
+      <title>Breaking: New AI Model Released</title>
+      <description>A groundbreaking AI model has been announced...</description>
+      <link>https://example.com/article1</link>
+      <pubDate>Sat, 15 Feb 2026 10:00:00 GMT</pubDate>
+      <author>John Doe</author>
+      <category>Technology</category>
+      <category>AI</category>
+      <guid>https://example.com/article1</guid>
+    </item>
+  </channel>
+</rss>
 ```
 
-#### Example
+#### Body: Atom Example
 
-```json
-{
-  "feed": {
-    "title": "Tech News",
-    "description": "Latest technology news",
-    "link": "https://example.com"
-  },
-  "items": [
-    {
-      "title": "Breaking: New AI Model Released",
-      "description": "A groundbreaking AI model has been announced...",
-      "link": "https://example.com/article1",
-      "pubDate": "2026-02-15T10:00:00Z",
-      "author": "John Doe",
-      "categories": ["Technology", "AI"]
-    }
-  ],
-  "matchCount": 1,
-  "totalCount": 20,
-  "filterApplied": {
-    "type": "regex",
-    "pattern": "^Breaking:"
-  }
-}
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Tech News</title>
+  <subtitle>Latest technology news</subtitle>
+  <link href="https://example.com"/>
+  <updated>2026-02-15T10:00:00Z</updated>
+  <entry>
+    <title>Breaking: New AI Model Released</title>
+    <summary>A groundbreaking AI model has been announced...</summary>
+    <link href="https://example.com/article1"/>
+    <updated>2026-02-15T10:00:00Z</updated>
+    <author>
+      <name>John Doe</name>
+    </author>
+  </entry>
+</feed>
 ```
+
+**重要**: フィルタリングされたアイテムのみが含まれます。元のフィード形式（RSS 2.0またはAtom）を保持します。
 
 ---
 
 ### Response: Client Error (400 Bad Request)
 
-#### Error Codes
+#### Headers
 
-- `INVALID_URL`: 無効なフィードURL
-- `INVALID_REGEX`: 正規表現の構文エラー
-- `INVALID_FILTER`: フィルタ基準の検証失敗
-
-#### Body Schema
-
-```typescript
-interface ErrorResponse {
-  error: {
-    code: string;
-    message: string; // ユーザー向けメッセージ
-    details?: unknown; // デバッグ情報
-  };
-}
+```http
+Content-Type: text/plain; charset=utf-8
 ```
 
-#### Example
+#### Body
 
-```json
-{
-  "error": {
-    "code": "INVALID_REGEX",
-    "message": "無効な正規表現パターンです",
-    "details": "Unterminated character class at position 5"
-  }
-}
 ```
+無効なフィードURLです
+```
+
+#### Error Messages
+
+- `無効なフィードURLです` - URLが不正またはhttp/https形式でない
+- `無効な正規表現パターンです` - 正規表現の構文エラー
+- `フィルタパターンが空です` - pattern が空文字列
+- `無効なフィルタタイプです` - type が keyword でも regex でもない
 
 ---
 
 ### Response: Server Error (500 Internal Server Error)
 
-#### Error Codes
+#### Headers
 
-- `FEED_FETCH_ERROR`: フィード取得失敗
-- `PARSE_ERROR`: フィード解析失敗
-- `REGEX_TIMEOUT`: 正規表現タイムアウト
-
-#### Example
-
-```json
-{
-  "error": {
-    "code": "FEED_FETCH_ERROR",
-    "message": "フィードの取得に失敗しました",
-    "details": "HTTP 404: Not Found"
-  }
-}
+```http
+Content-Type: text/plain; charset=utf-8
 ```
+
+#### Body
+
+```
+フィードの取得に失敗しました
+```
+
+#### Error Messages
+
+- `フィードの取得に失敗しました` - ネットワークエラーまたは404
+- `フィードの解析に失敗しました` - 不正なXML形式
+- `正規表現の処理がタイムアウトしました` - 複雑すぎるパターン（500ms超過）
 
 ---
 
@@ -189,18 +148,18 @@ interface ErrorResponse {
 
 ### Request Validation
 
-| フィールド | ルール | エラーメッセージ |
+| パラメータ | ルール | エラーメッセージ |
 |-----------|--------|-----------------|
 | `feedUrl` | 非空、http/https形式 | "無効なフィードURLです" |
-| `filter.type` | 'keyword' or 'regex' | "無効なフィルタタイプです" |
-| `filter.pattern` | 非空文字列 | "フィルタパターンが空です" |
-| `filter.caseSensitive` (keyword) | boolean | "caseSensitiveはboolean型である必要があります" |
+| `type` | 'keyword' or 'regex' | "無効なフィルタタイプです" |
+| `pattern` | 非空文字列 | "フィルタパターンが空です" |
+| `caseSensitive` (keyword) | boolean (デフォルト: false) | "caseSensitiveはboolean型である必要があります" |
 
 ### Response Guarantees
 
-- `matchCount ≤ totalCount`
-- `items.length === matchCount`
-- `items` の順序は元のフィードと同じ
+- フィルタリングされたアイテムのみが含まれる
+- 元のフィード形式（RSS 2.0またはAtom）を保持
+- アイテムの順序は元のフィードと同じ
 - `description` はHTMLエンティティデコード済み
 
 ---
@@ -217,13 +176,13 @@ interface ErrorResponse {
 
 ## Edge Cases
 
-1. **空のフィルタパターン**: 400エラー
-2. **マッチなし**: `matchCount: 0`, `items: []`
-3. **全アイテムマッチ**: `matchCount === totalCount`
-4. **フィードアイテムなし**: `matchCount: 0`, `totalCount: 0`
-5. **不正なXML**: 500エラー (PARSE_ERROR)
-6. **ネットワークエラー**: 500エラー (FEED_FETCH_ERROR)
-7. **複雑すぎる正規表現**: 500エラー (REGEX_TIMEOUT)
+1. **空のフィルタパターン**: 400エラー ("フィルタパターンが空です")
+2. **マッチなし**: 空の`<channel>`（RSSの場合）または空の`<feed>`（Atomの場合）
+3. **全アイテムマッチ**: すべてのアイテムが含まれる
+4. **フィードアイテムなし**: 空の`<channel>`または`<feed>`
+5. **不正なXML**: 500エラー ("フィードの解析に失敗しました")
+6. **ネットワークエラー**: 500エラー ("フィードの取得に失敗しました")
+7. **複雑すぎる正規表現**: 500エラー ("正規表現の処理がタイムアウトしました")
 
 ---
 
@@ -233,7 +192,7 @@ AWS Lambda Function URLのデフォルト設定に従います。
 
 ```yaml
 AllowOrigins: ["*"]
-AllowMethods: ["POST"]
+AllowMethods: ["GET"]
 AllowHeaders: ["Content-Type"]
 ```
 
@@ -262,28 +221,28 @@ URLパス `/v1/filter` を使用する将来的なバージョニングに対応
 ### Test Cases
 
 1. **正常系 - キーワードフィルタ**
-   - 入力: 有効なRSS URL + keyword filter
-   - 期待: 200 OK + フィルタリング結果
+   - 入力: `GET /filter?feedUrl=...&type=keyword&pattern=tech`
+   - 期待: 200 OK + RSS/Atom XML（フィルタリング済み）
 
 2. **正常系 - 正規表現フィルタ**
-   - 入力: 有効なRSS URL + regex filter
-   - 期待: 200 OK + フィルタリング結果
+   - 入力: `GET /filter?feedUrl=...&type=regex&pattern=%5EBreaking`
+   - 期待: 200 OK + RSS/Atom XML（フィルタリング済み）
 
 3. **異常系 - 無効なURL**
-   - 入力: 不正なURL
-   - 期待: 400 Bad Request + INVALID_URL
+   - 入力: `feedUrl=invalid-url`
+   - 期待: 400 Bad Request + "無効なフィードURLです"
 
 4. **異常系 - 無効な正規表現**
-   - 入力: `[unclosed`
-   - 期待: 400 Bad Request + INVALID_REGEX
+   - 入力: `pattern=%5Bunclosed`
+   - 期待: 400 Bad Request + "無効な正規表現パターンです"
 
 5. **異常系 - フィード取得失敗**
    - 入力: 存在しないURL
-   - 期待: 500 Internal Server Error + FEED_FETCH_ERROR
+   - 期待: 500 Internal Server Error + "フィードの取得に失敗しました"
 
 6. **エッジケース - マッチなし**
    - 入力: マッチしないパターン
-   - 期待: 200 OK + `matchCount: 0`
+   - 期待: 200 OK + 空の`<channel>`または`<feed>`
 
 ---
 
@@ -291,8 +250,8 @@ URLパス `/v1/filter` を使用する将来的なバージョニングに対応
 
 このAPIコントラクトは以下を保証します:
 
+- **RSSリーダー互換**: レスポンスはRSS/Atom XML形式で既存ツールで利用可能
 - **明確な責任境界**: クライアント(400)とサーバー(500)のエラーを分離
-- **型安全性**: TypeScript型定義で正確な仕様表現
-- **拡張性**: 将来的なフィルタタイプ追加に対応
+- **シンプルなエラー処理**: HTTPステータスコードとテキストメッセージ
 - **パフォーマンス保証**: 5000件フィードで5秒以内
 - **エラーハンドリング**: すべてのエラーケースを文書化

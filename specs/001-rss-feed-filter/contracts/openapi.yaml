@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: RSS Feed Filter API
   description: |
-    RSSフィードフィルタリングAPI。キーワードまたは正規表現でフィードアイテムをフィルタリングします。
+    RSSフィードフィルタリングAPI。キーワードまたは正規表現でフィードアイテムをフィルタリングし、RSS/Atom XML形式で返却します。既存のRSSリーダーで直接利用可能です。
   version: 1.0.0
   contact:
     name: RSS Filter Service
@@ -15,284 +15,115 @@ servers:
         
 paths:
   /filter:
-    post:
+    get:
       summary: RSSフィードをフィルタリング
       description: |
         指定されたRSSフィードURLからフィードを取得し、フィルタ基準に基づいてアイテムをフィルタリングして返却します。
+        レスポンスは元のフィード形式（RSS 2.0またはAtom）で返されます。
       operationId: filterFeed
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/FilterRequest'
-            examples:
-              keywordFilter:
-                summary: キーワードフィルタの例
-                value:
-                  feedUrl: "https://example.com/feed.xml"
-                  filter:
-                    type: "keyword"
-                    pattern: "テクノロジー"
-                    caseSensitive: false
-              regexFilter:
-                summary: 正規表現フィルタの例
-                value:
-                  feedUrl: "https://example.com/feed.xml"
-                  filter:
-                    type: "regex"
-                    pattern: "^Breaking:"
+      parameters:
+        - name: feedUrl
+          in: query
+          required: true
+          description: RSSフィードのURL (RSS 2.0またはAtom形式)
+          schema:
+            type: string
+            format: uri
+          example: "https://example.com/feed.xml"
+        - name: type
+          in: query
+          required: true
+          description: フィルタタイプ
+          schema:
+            type: string
+            enum: [keyword, regex]
+          example: "keyword"
+        - name: pattern
+          in: query
+          required: true
+          description: フィルタパターン（URLエンコード必須）
+          schema:
+            type: string
+            minLength: 1
+          example: "テクノロジー"
+        - name: caseSensitive
+          in: query
+          required: false
+          description: 大文字小文字を区別するか（keywordモードのみ、デフォルト: false）
+          schema:
+            type: boolean
+            default: false
+          example: false
       responses:
         '200':
           description: フィルタリング成功
           content:
-            application/json:
+            application/rss+xml:
               schema:
-                $ref: '#/components/schemas/FilterResponse'
-              examples:
-                success:
-                  summary: フィルタリング成功例
-                  value:
-                    feed:
-                      title: "Tech News"
-                      description: "Latest technology news"
-                      link: "https://example.com"
-                    items:
-                      - title: "Breaking: New AI Model Released"
-                        description: "A groundbreaking AI model has been announced..."
-                        link: "https://example.com/article1"
-                        pubDate: "2026-02-15T10:00:00Z"
-                      - title: "Breaking: Tech Conference Announced"
-                        description: "Annual tech conference dates revealed..."
-                        link: "https://example.com/article2"
-                        pubDate: "2026-02-14T15:30:00Z"
-                    matchCount: 2
-                    totalCount: 20
-                    filterApplied:
-                      type: "regex"
-                      pattern: "^Breaking:"
+                type: string
+                format: binary
+              example: |
+                <?xml version="1.0" encoding="UTF-8"?>
+                <rss version="2.0">
+                  <channel>
+                    <title>Tech News</title>
+                    <description>Latest technology news</description>
+                    <link>https://example.com</link>
+                    <item>
+                      <title>Breaking: New AI Model Released</title>
+                      <description>A groundbreaking AI model has been announced...</description>
+                      <link>https://example.com/article1</link>
+                      <pubDate>Sat, 15 Feb 2026 10:00:00 GMT</pubDate>
+                    </item>
+                  </channel>
+                </rss>
+            application/atom+xml:
+              schema:
+                type: string
+                format: binary
+              example: |
+                <?xml version="1.0" encoding="UTF-8"?>
+                <feed xmlns="http://www.w3.org/2005/Atom">
+                  <title>Tech News</title>
+                  <subtitle>Latest technology news</subtitle>
+                  <link href="https://example.com"/>
+                  <updated>2026-02-15T10:00:00Z</updated>
+                  <entry>
+                    <title>Breaking: New AI Model Released</title>
+                    <summary>A groundbreaking AI model has been announced...</summary>
+                    <link href="https://example.com/article1"/>
+                    <updated>2026-02-15T10:00:00Z</updated>
+                  </entry>
+                </feed>
         '400':
           description: リクエストエラー (無効なフィルタパターン、不正なURL等)
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: string
               examples:
                 invalidRegex:
                   summary: 無効な正規表現
-                  value:
-                    error:
-                      code: "INVALID_REGEX"
-                      message: "無効な正規表現パターンです"
-                      details: "Unterminated character class"
+                  value: "無効な正規表現パターンです"
                 invalidUrl:
                   summary: 無効なURL
-                  value:
-                    error:
-                      code: "INVALID_URL"
-                      message: "無効なフィードURLです"
-                      details: "URL must start with http:// or https://"
+                  value: "無効なフィードURLです"
+                emptyPattern:
+                  summary: 空のパターン
+                  value: "フィルタパターンが空です"
         '500':
           description: サーバーエラー (フィード取得失敗、解析エラー等)
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: string
               examples:
                 fetchError:
                   summary: フィード取得失敗
-                  value:
-                    error:
-                      code: "FEED_FETCH_ERROR"
-                      message: "フィードの取得に失敗しました"
-                      details: "HTTP 404: Not Found"
+                  value: "フィードの取得に失敗しました"
                 parseError:
                   summary: フィード解析失敗
-                  value:
-                    error:
-                      code: "PARSE_ERROR"
-                      message: "フィードの解析に失敗しました"
-                      details: "Invalid XML: Unexpected end of input"
-
-components:
-  schemas:
-    FilterRequest:
-      type: object
-      required:
-        - feedUrl
-        - filter
-      properties:
-        feedUrl:
-          type: string
-          format: uri
-          description: RSSフィードのURL (RSS 2.0またはAtom形式)
-          example: "https://example.com/feed.xml"
-        filter:
-          $ref: '#/components/schemas/FilterCriteria'
-          
-    FilterCriteria:
-      oneOf:
-        - $ref: '#/components/schemas/KeywordFilter'
-        - $ref: '#/components/schemas/RegexFilter'
-      discriminator:
-        propertyName: type
-        mapping:
-          keyword: '#/components/schemas/KeywordFilter'
-          regex: '#/components/schemas/RegexFilter'
-          
-    KeywordFilter:
-      type: object
-      required:
-        - type
-        - pattern
-        - caseSensitive
-      properties:
-        type:
-          type: string
-          enum: [keyword]
-          description: フィルタタイプ
-        pattern:
-          type: string
-          minLength: 1
-          description: キーワードパターン (部分一致)
-          example: "テクノロジー"
-        caseSensitive:
-          type: boolean
-          description: 大文字小文字を区別するか
-          default: false
-          example: false
-          
-    RegexFilter:
-      type: object
-      required:
-        - type
-        - pattern
-      properties:
-        type:
-          type: string
-          enum: [regex]
-          description: フィルタタイプ
-        pattern:
-          type: string
-          minLength: 1
-          description: 正規表現パターン (JavaScript正規表現構文)
-          example: "^Breaking:"
-          
-    FilterResponse:
-      type: object
-      required:
-        - feed
-        - items
-        - matchCount
-        - totalCount
-        - filterApplied
-      properties:
-        feed:
-          $ref: '#/components/schemas/FeedMetadata'
-        items:
-          type: array
-          description: フィルタリング後のフィードアイテム
-          items:
-            $ref: '#/components/schemas/FeedItem'
-        matchCount:
-          type: integer
-          minimum: 0
-          description: マッチしたアイテム数
-          example: 5
-        totalCount:
-          type: integer
-          minimum: 0
-          description: 総アイテム数 (フィルタ適用前)
-          example: 20
-        filterApplied:
-          $ref: '#/components/schemas/FilterCriteria'
-          description: 適用されたフィルタ基準
-          
-    FeedMetadata:
-      type: object
-      required:
-        - title
-        - description
-      properties:
-        title:
-          type: string
-          description: フィードのタイトル
-          example: "Tech News"
-        description:
-          type: string
-          description: フィードの説明
-          example: "Latest technology news and updates"
-        link:
-          type: string
-          format: uri
-          description: フィードのホームページURL
-          example: "https://example.com"
-          
-    FeedItem:
-      type: object
-      required:
-        - title
-        - description
-        - link
-      properties:
-        title:
-          type: string
-          description: アイテムのタイトル
-          example: "Breaking: New AI Model Released"
-        description:
-          type: string
-          description: アイテムの説明/コンテンツ (HTMLタグ除去、エンティティデコード済み)
-          example: "A groundbreaking AI model has been announced by researchers..."
-        link:
-          type: string
-          format: uri
-          description: アイテムへのリンクURL
-          example: "https://example.com/article1"
-        pubDate:
-          type: string
-          format: date-time
-          description: 公開日時 (ISO 8601形式)
-          example: "2026-02-15T10:00:00Z"
-        author:
-          type: string
-          description: 著者名
-          example: "John Doe"
-        categories:
-          type: array
-          description: カテゴリ/タグ
-          items:
-            type: string
-          example: ["Technology", "AI"]
-        guid:
-          type: string
-          description: グローバル一意識別子
-          example: "https://example.com/article1"
-          
-    ErrorResponse:
-      type: object
-      required:
-        - error
-      properties:
-        error:
-          type: object
-          required:
-            - code
-            - message
-          properties:
-            code:
-              type: string
-              enum:
-                - FEED_FETCH_ERROR
-                - PARSE_ERROR
-                - INVALID_REGEX
-                - REGEX_TIMEOUT
-                - INVALID_URL
-                - INVALID_FILTER
-              description: エラーコード
-            message:
-              type: string
-              description: ユーザー向けエラーメッセージ
-              example: "無効な正規表現パターンです"
-            details:
-              description: デバッグ用詳細情報
-              example: "Unterminated character class at position 5"
+                  value: "フィードの解析に失敗しました"
+                timeout:
+                  summary: 正規表現タイムアウト
+                  value: "正規表現の処理がタイムアウトしました"
