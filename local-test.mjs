@@ -18,9 +18,9 @@ console.log('='.repeat(70));
 const test1 = await handler({
   path: '/filter',
   queryStringParameters: {
-    feedUrl: 'https://news.ycombinator.com/rss',
+    feedUrl: 'https://b9good.org/rss',
     type: 'keyword',
-    pattern: 'AI'
+    pattern: '青の'
   },
   httpMethod: 'GET',
   headers: {},
